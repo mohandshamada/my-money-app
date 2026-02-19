@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String   @id @default(uuid())
+  email                  String   @unique
+  passwordHash          String   @map("password_hash")
+  fullName              String?  @map("full_name")
+  phone                 String?
+  avatarUrl             String?  @map("avatar_url")
+  timezone              String   @default("UTC")
+  currency              String   @default("USD")
+  budgetType            String?  @map("budget_type")
+  notificationPreferences Json?   @map("notification_preferences")
+  emailVerified         Boolean  @default(false) @map("email_verified")
+  twoFactorEnabled      Boolean  @default(false) @map("two_factor_enabled")
+  twoFactorSecret       String?  @map("two_factor_secret")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  deletedAt             DateTime? @map("deleted_at")
+
+  transactions      Transaction[]
+  budgets           Budget[]
+  bankConnections   BankConnection[]
+  forecasts         Forecast[]
+  refreshTokens     RefreshToken[]
+  passwordResets    PasswordReset[]
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Transaction {
+  id                  String   @id @default(uuid())
+  userId              String   @map("user_id")
+  bankConnectionId    String?  @map("bank_connection_id")
+  amount              Decimal  @db.Decimal(12, 2)
+  isExpense           Boolean  @map("is_expense")
+  merchant            String?
+  description         String?
+  date                DateTime
+  category            String?
+  subcategory         String?
+  tags                Json?    @default("[]")
+  plaidTransactionId  String?  @map("plaid_transaction_id")
+  accountId           String?  @map("account_id")
+  pending             Boolean  @default(false)
+  isRecurring         Boolean  @default(false) @map("is_recurring")
+  recurringPattern    String?  @map("recurring_pattern")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankConnection BankConnection? @relation(fields: [bankConnectionId], references: [id])
+
+  @@unique([userId, plaidTransactionId])
+  @@index([userId])
+  @@index([date])
+  @@index([category])
+  @@index([userId, date])
+  @@map("transactions")
+}
+
+model Budget {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  category     String
+  amount       Decimal  @db.Decimal(12, 2)
+  currency     String?
+  periodType   String   @map("period_type")
+  startDate    DateTime @map("start_date")
+  endDate      DateTime? @map("end_date")
+  rollover     Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, startDate])
+  @@index([userId])
+  @@index([startDate])
+  @@map("budgets")
+}
+
+model BankConnection {
+  id                     String   @id @default(uuid())
+  userId                 String   @map("user_id")
+  plaidAccessToken       String   @map("plaid_access_token")
+  plaidItemId            String   @map("plaid_item_id")
+  institutionName        String?  @map("institution_name")
+  institutionLogoUrl     String?  @map("institution_logo_url")
+  lastSyncedAt           DateTime? @map("last_synced_at")
+  nextSyncAt             DateTime? @map("next_sync_at")
+  syncStatus             String   @default("pending") @map("sync_status")
+  syncErrorMessage       String?  @map("sync_error_message")
+  syncErrorCount         Int      @default(0) @map("sync_error_count")
+  connectedAt            DateTime @default(now()) @map("connected_at")
+  disconnectedAt         DateTime? @map("disconnected_at")
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts BankAccount[]
+  transactions Transaction[]
+
+  @@unique([userId, plaidItemId])
+  @@index([userId])
+  @@index([syncStatus])
+  @@map("bank_connections")
+}
+
+model BankAccount {
+  id                 String   @id @default(uuid())
+  bankConnectionId   String   @map("bank_connection_id")
+  userId             String   @map("user_id")
+  plaidAccountId     String   @map("plaid_account_id")
+  name               String?
+  accountType        String?  @map("account_type")
+  accountSubtype     String?  @map("account_subtype")
+  currentBalance     Decimal? @db.Decimal(12, 2) @map("current_balance")
+  availableBalance   Decimal? @db.Decimal(12, 2) @map("available_balance")
+  isHidden           Boolean  @default(false) @map("is_hidden")
+  includeInNetWorth  Boolean  @default(true) @map("include_in_net_worth")
+  syncedAt           DateTime? @map("synced_at")
+
+  bankConnection BankConnection @relation(fields: [bankConnectionId], references: [id], onDelete: Cascade)
+
+  @@unique([bankConnectionId, plaidAccountId])
+  @@index([userId])
+  @@index([bankConnectionId])
+  @@map("bank_accounts")
+}
+
+model Forecast {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  forecastDate      DateTime @map("forecast_date")
+  projectedBalance  Decimal? @db.Decimal(12, 2) @map("projected_balance")
+  confidenceLevel   Float?   @map("confidence_level")
+  scenarioName      String?  @map("scenario_name")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, forecastDate, scenarioName])
+  @@index([userId])
+  @@index([forecastDate])
+  @@map("forecasts")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revoked   Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}

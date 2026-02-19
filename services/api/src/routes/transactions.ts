@@ -1,0 +1,128 @@
+import { Router } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
+import { AuthRequest } from '../middleware/auth';
+
+const router = Router();
+const prisma = new PrismaClient();
+
+const transactionSchema = z.object({
+  amount: z.number().positive(),
+  isExpense: z.boolean(),
+  merchant: z.string().optional(),
+  description: z.string().optional(),
+  date: z.string().datetime(),
+  category: z.string(),
+  subcategory: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  pending: z.boolean().optional()
+});
+
+// Get all transactions
+router.get('/', async (req: AuthRequest, res, next) => {
+  try {
+    const userId = req.user!.id;
+    const { startDate, endDate, category, limit = '20', offset = '0' } = req.query;
+    
+    const where: any = { userId };
+    
+    if (startDate || endDate) {
+      where.date = {};
+      if (startDate) where.date.gte = new Date(startDate as string);
+      if (endDate) where.date.lte = new Date(endDate as string);
+    }
+    
+    if (category) {
+      where.category = category;
+    }
+    
+    const [transactions, total] = await Promise.all([
+      prisma.transaction.findMany({
+        where,
+        orderBy: { date: 'desc' },
+        take: parseInt(limit as string),
+        skip: parseInt(offset as string)
+      }),
+      prisma.transaction.count({ where })
+    ]);
+    
+    res.json({
+      transactions,
+      total,
+      page: Math.floor(parseInt(offset as string) / parseInt(limit as string)),
+      limit: parseInt(limit as string)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Create transaction
+router.post('/', async (req: AuthRequest, res, next) => {
+  try {
+    const data = transactionSchema.parse(req.body);
+    const userId = req.user!.id;
+    
+    const transaction = await prisma.transaction.create({
+      data: {
+        ...data,
+        date: new Date(data.date),
+        userId
+      }
+    });
+    
+    res.status(201).json(transaction);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update transaction
+router.put('/:id', async (req: AuthRequest, res, next) => {
+  try {
+    const { id } = req.params;
+    const data = transactionSchema.partial().parse(req.body);
+    const userId = req.user!.id;
+    
+    const transaction = await prisma.transaction.update({
+      where: { id, userId },
+      data: {
+        ...data,
+        date: data.date ? new Date(data.date) : undefined
+      }
+    });
+    
+    res.json(transaction);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete transaction
+router.delete('/:id', async (req: AuthRequest, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+    
+    await prisma.transaction.delete({
+      where: { id, userId }
+    });
+    
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Import CSV
+router.post('/import', async (req: AuthRequest, res, next) => {
+  try {
+    // Placeholder for CSV import logic
+    // Would parse CSV, map columns, create transactions
+    res.json({ imported: 0, duplicatesSkipped: 0, errors: 0 });
+  } catch (error) {
+    next(error);
+  }
+});
+
+export { router as transactionRouter };
