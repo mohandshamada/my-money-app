@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, List, PiggyBank, TrendingUp } from 'lucide-react'
+import { LayoutDashboard, List, PiggyBank, TrendingUp, Settings } from 'lucide-react'
 
 export function Sidebar() {
   const navItems = [
@@ -31,6 +31,22 @@ export function Sidebar() {
             </li>
           ))}
         </ul>
+
+        <div className="mt-8 pt-4 border-t dark:border-gray-700">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                isActive
+                  ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/20'
+                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+              }`
+            }
+          >
+            <Settings className="h-5 w-5" />
+            <span>Settings</span>
+          </NavLink>
+        </div>
       </nav>
     </aside>
   )

@@ -9,6 +9,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { BudgetsPage } from './pages/BudgetsPage'
 import { ForecastPage } from './pages/ForecastPage'
+import { SettingsPage } from './pages/SettingsPage'
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
@@ -31,6 +32,7 @@ function App() {
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/forecast" element={<ForecastPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </Router>
