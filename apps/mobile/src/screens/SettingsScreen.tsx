@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -14,7 +15,7 @@ const MENU_ITEMS = [
 
 export function SettingsScreen() {
   const dispatch = useDispatch()
-  const [darkMode, setDarkMode] = false
+  const [darkMode, setDarkMode] = useState(false)
 
   return (
     <SafeAreaView style={styles.container}>

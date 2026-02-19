@@ -16,7 +16,7 @@ export function BudgetsScreen() {
   const totalBudgeted = BUDGETS.reduce((sum, b) => sum + b.budgeted, 0)
   const totalSpent = BUDGETS.reduce((sum, b) => sum + b.spent, 0)
 
-  const getProgress = (spent: number, budgeted: number) => {
+  const getProgress = (spent: number, budgeted: number): { color: string; width: any } => {
     const ratio = spent / budgeted
     if (ratio >= 1) return { color: '#ef4444', width: '100%' }
     if (ratio >= 0.8) return { color: '#f59e0b', width: `${ratio * 100}%` }
@@ -104,14 +104,14 @@ export function BudgetsScreen() {
                   </View>
 
                   <View style={[styles.budgetBadge, { backgroundColor: isOver ? '#fee2e2' : '#dcfce7' }]}>
-                    <Text style={[styles.budgetBadgeText, { color: isOver ? '#dc2626' : '#16a34a' }}>
+                    <Text style={[styles.budgetBadgeText, { color: isOver ? '#dc2626' : '#16a34a' }]}>
                       {isOver ? 'Over' : 'On Track'}
                     </Text>
                   </View>
                 </View>
 
                 <View style={styles.budgetProgress}>
-                  <View style={[styles.budgetProgressFill, { width: progress.width as any, backgroundColor: progress.color }]} />
+                  <View style={[styles.budgetProgressFill, { width: progress.width, backgroundColor: progress.color }]} />
                 </View>
               </View>
             )
