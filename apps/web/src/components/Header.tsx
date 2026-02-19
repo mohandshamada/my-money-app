@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import { Wallet, Menu, User, LogOut } from 'lucide-react'
+import { Wallet, LogOut } from 'lucide-react'
 import { RootState } from '../store'
 import { logout } from '../store/authSlice'
 

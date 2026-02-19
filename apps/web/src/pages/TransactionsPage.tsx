@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Plus, Download, Search, Filter } from 'lucide-react'
+import { Plus, Download, Search } from 'lucide-react'
 import { RootState } from '../store'
 import { fetchTransactions } from '../store/transactionSlice'
 import { TransactionModal } from '../components/TransactionModal'

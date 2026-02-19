@@ -36,7 +36,7 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ className = '' }: ThemeToggleProps) {
-  const { theme, setTheme, isDark } = useDarkMode()
+  const { theme, setTheme } = useDarkMode()
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>

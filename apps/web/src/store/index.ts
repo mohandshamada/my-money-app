@@ -1,8 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
-import authReducer from './store/authSlice'
-import transactionReducer from './store/transactionSlice'
-import budgetReducer from './store/budgetSlice'
-import forecastReducer from './store/forecastSlice'
+import authReducer from './authSlice'
+import transactionReducer from './transactionSlice'
+import budgetReducer from './budgetSlice'
+import forecastReducer from './forecastSlice'
 
 export const store = configureStore({
   reducer: {

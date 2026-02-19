@@ -4,7 +4,7 @@ import { Wallet, TrendingUp, Shield, Download } from 'lucide-react'
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <!-- Hero Section -->
+      {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <div className="text-center">
           <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 dark:text-white mb-6">
@@ -32,7 +32,7 @@ export function LandingPage() {
         </div>
       </div>
 
-      <!-- Features -->
+      {/* Features */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
           Why Choose CashFlow?
@@ -69,7 +69,7 @@ export function LandingPage() {
         </div>
       </div>
 
-      <!-- Pricing -->
+      {/* Pricing */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
           Simple Pricing

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Bell, Lock, CreditCard, User, Globe, Palette } from 'lucide-react'
+import { Bell, Lock, CreditCard, User, Palette } from 'lucide-react'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useToast } from '../components/Toast'
 

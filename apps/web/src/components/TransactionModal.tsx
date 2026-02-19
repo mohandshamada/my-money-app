@@ -44,7 +44,7 @@ const CATEGORIES = [
 export function TransactionModal({ isOpen, onClose, onSubmit, initialData }: TransactionModalProps) {
   const [isExpense, setIsExpense] = useState(initialData?.isExpense ?? true)
   
-  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       amount: initialData?.amount || 0,

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
-import { Upload, FileText, Check, X, AlertCircle } from 'lucide-react'
+import { Upload, Check, X, AlertCircle } from 'lucide-react'
 import { parse } from 'papaparse'
 
 interface CSVImportModalProps {
