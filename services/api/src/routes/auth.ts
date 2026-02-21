@@ -56,7 +56,7 @@ router.post('/register', async (req, res, next) => {
     });
     
     // Generate tokens
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRY });
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRY as jwt.SignOptions["expiresIn"] });
     const refreshToken = crypto.randomBytes(40).toString('hex');
     
     // Store refresh token
@@ -100,7 +100,7 @@ router.post('/login', async (req, res, next) => {
     }
     
     // Generate tokens
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRY });
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRY as jwt.SignOptions["expiresIn"] });
     const refreshToken = crypto.randomBytes(40).toString('hex');
     
     // Store refresh token
@@ -154,7 +154,7 @@ router.post('/refresh', async (req, res, next) => {
     const token = jwt.sign(
       { userId: storedToken.user.id, email: storedToken.user.email },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRY }
+      { expiresIn: JWT_EXPIRY as jwt.SignOptions['expiresIn'] }
     );
     
     res.json({ token });

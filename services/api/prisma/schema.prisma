@@ -21,6 +21,13 @@ model User {
   emailVerified         Boolean  @default(false) @map("email_verified")
   twoFactorEnabled      Boolean  @default(false) @map("two_factor_enabled")
   twoFactorSecret       String?  @map("two_factor_secret")
+  
+  // OAuth Provider IDs
+  googleId              String?  @unique @map("google_id")
+  microsoftId           String?  @unique @map("microsoft_id")
+  appleId               String?  @unique @map("apple_id")
+  facebookId            String?  @unique @map("facebook_id")
+  
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
   deletedAt             DateTime? @map("deleted_at")

@@ -41,13 +41,14 @@ router.get('/', async (req: AuthRequest, res, next) => {
           _sum: { amount: true }
         });
         
-        const spentAmount = spent._sum.amount || 0;
+        const spentAmount = Number(spent._sum.amount || 0);
+        const budgetAmount = Number(budget.amount);
         
         return {
           ...budget,
           spent: spentAmount,
-          remaining: budget.amount - spentAmount,
-          status: spentAmount > budget.amount ? 'overspent' : 'on_track'
+          remaining: budgetAmount - spentAmount,
+          status: spentAmount > budgetAmount ? 'overspent' : 'on_track'
         };
       })
     );

@@ -3,8 +3,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import passport from 'passport';
 
 import { authRouter } from './routes/auth';
+import { oauthRouter } from './routes/oauth';
 import { transactionRouter } from './routes/transactions';
 import { budgetRouter } from './routes/budgets';
 import { forecastRouter } from './routes/forecast';
@@ -23,6 +25,9 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
+
+// Passport initialization
+app.use(passport.initialize());
 
 // Rate limiting
 const limiter = rateLimit({
@@ -43,6 +48,7 @@ app.get('/health', (req, res) => {
 
 // Public routes
 app.use('/auth', authRouter);
+app.use('/auth', oauthRouter);
 
 // Protected routes
 app.use('/api/transactions', authMiddleware, transactionRouter);
