@@ -76,23 +76,46 @@ export function LandingPage() {
         </h2>
         <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {[
-            { name: 'Free', price: '$0', features: ['CSV import', 'Basic budgeting', '50 transactions/mo'] },
-            { name: 'Pro', price: '$9/mo', features: ['Unlimited bank sync', 'Forecasting', 'All features'], popular: true },
-            { name: 'Premium', price: '$15/mo', features: ['Investments', 'Multi-user', 'Advanced reports'] }
+            { name: 'Free', price: '$0', features: ['CSV import', 'Basic budgeting', '50 transactions/mo'], cta: 'Get Started', ctaLink: '/register' },
+            { name: 'Pro', price: '$9/mo', features: ['Unlimited bank sync', 'Forecasting', 'All features'], popular: true, cta: 'Start Free Trial', ctaLink: '/register' },
+            { name: 'Premium', price: '$15/mo', features: ['Investments', 'Multi-user', 'Advanced reports'], cta: 'Contact Sales', ctaLink: 'mailto:sales@mymoney.mshousha.uk' }
           ].map((plan) => (
-            <div key={plan.name} className={`card ${plan.popular ? 'ring-2 ring-primary-600' : ''}`}>
+            <div key={plan.name} className={`card ${plan.popular ? 'ring-2 ring-primary-600' : ''} flex flex-col`}>
               {plan.popular && (
-                <span className="bg-primary-600 text-white text-sm px-3 py-1 rounded-full">Popular</span>
+                <span className="bg-primary-600 text-white text-sm px-3 py-1 rounded-full self-start">Popular</span>
               )}
               <h3 className="text-xl font-bold mt-4">{plan.name}</h3>
               <p className="text-3xl font-bold text-primary-600 my-4">{plan.price}</p>
-              <ul className="space-y-2">
+              <ul className="space-y-2 flex-grow">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-center gap-2">
                     <span className="text-green-500">✓</span> {f}
                   </li>
                 ))}
               </ul>
+              {plan.ctaLink.startsWith('http') || plan.ctaLink.startsWith('mailto') ? (
+                <a
+                  href={plan.ctaLink}
+                  className={`mt-6 w-full py-3 rounded-lg font-semibold text-center transition-colors ${
+                    plan.popular
+                      ? 'bg-primary-600 text-white hover:bg-primary-700'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {plan.cta}
+                </a>
+              ) : (
+                <Link
+                  to={plan.ctaLink}
+                  className={`mt-6 w-full py-3 rounded-lg font-semibold text-center transition-colors ${
+                    plan.popular
+                      ? 'bg-primary-600 text-white hover:bg-primary-700'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+              )}
             </div>
           ))}
         </div>
