@@ -5,6 +5,7 @@ import { Layout } from './components/Layout'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { OAuthCallback } from './pages/OAuthCallback'
 import { DashboardPage } from './pages/DashboardPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { BudgetsPage } from './pages/BudgetsPage'
@@ -26,6 +27,7 @@ function App() {
         <Route path="/register" element={
           isAuthenticated ? <Navigate to="/dashboard" /> : <RegisterPage />
         } />
+        <Route path="/oauth/callback" element={<OAuthCallback />} />
         
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
