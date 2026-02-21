@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Bell, Lock, CreditCard, User, Palette } from 'lucide-react'
+import { Bell, Lock, CreditCard, User, Palette, Building2 } from 'lucide-react'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useToast } from '../components/Toast'
+import { PlaidLink } from '../components/PlaidLink'
 
 export function SettingsPage() {
   const { showToast } = useToast()
@@ -12,6 +13,7 @@ export function SettingsPage() {
     { id: 'appearance', label: 'Appearance', icon: Palette },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Lock },
+    { id: 'banking', label: 'Bank Accounts', icon: Building2 },
     { id: 'billing', label: 'Billing', icon: CreditCard },
   ]
 
@@ -195,6 +197,16 @@ export function SettingsPage() {
                   Delete Account
                 </button>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'banking' && (
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold">Bank Accounts</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Connect your bank accounts to automatically sync transactions.
+              </p>
+              <PlaidLink />
             </div>
           )}
 

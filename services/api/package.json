@@ -28,6 +28,7 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-microsoft": "^2.1.0",
     "pg": "^8.11.3",
+    "plaid": "^41.3.0",
     "redis": "^4.6.13",
     "zod": "^3.22.4"
   },
