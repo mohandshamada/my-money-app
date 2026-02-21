@@ -12,7 +12,7 @@ export function LandingPage() {
             <span className="text-primary-600"> Financial Future</span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            CashFlow combines simple budgeting with powerful cash flow forecasting.
+            My Money combines simple budgeting with powerful cash flow forecasting.
             See where your money is going and where it will be.
           </p>
           <div className="flex justify-center gap-4">
@@ -35,7 +35,7 @@ export function LandingPage() {
       {/* Features */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
-          Why Choose CashFlow?
+          Why Choose My Money?
         </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[

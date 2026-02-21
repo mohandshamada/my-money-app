@@ -16,7 +16,7 @@ export function Header() {
             <Link to="/" className="flex items-center gap-2">
               <Wallet className="h-8 w-8 text-primary-600" />
               <span className="text-xl font-bold text-gray-900 dark:text-white">
-                CashFlow
+                My Money
               </span>
             </Link>
           </div>

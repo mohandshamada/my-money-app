@@ -29,7 +29,7 @@ export function LoginPage() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
             <Wallet className="h-10 w-10 text-primary-600" />
-            <span className="text-2xl font-bold">CashFlow</span>
+            <span className="text-2xl font-bold">My Money</span>
           </Link>
           <h2 className="mt-6 text-3xl font-bold">Welcome back</h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
