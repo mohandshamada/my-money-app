@@ -27,7 +27,7 @@ export function LoginScreen({ navigation }: any) {
       >
         <View style={styles.header}>
           <Ionicons name="wallet-outline" size={64} color="#3b82f6" />
-          <Text style={styles.title}>CashFlow</Text>
+          <Text style={styles.title}>My Money</Text>
           <Text style={styles.subtitle}>Welcome back</Text>
         </View>
 

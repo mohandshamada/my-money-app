@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CashFlow",
-    "slug": "cashflow",
+    "name": "My Money",
+    "slug": "my-money",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,14 +14,14 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cashflow.app"
+      "bundleIdentifier": "com.mymoney.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#3b82f6"
       },
-      "package": "com.cashflow.app"
+      "package": "com.mymoney.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"

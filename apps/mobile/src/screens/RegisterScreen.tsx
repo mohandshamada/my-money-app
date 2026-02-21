@@ -28,7 +28,7 @@ export function RegisterScreen({ navigation }: any) {
       >
         <View style={styles.header}>
           <Ionicons name="wallet-outline" size={64} color="#3b82f6" />
-          <Text style={styles.title}>CashFlow</Text>
+          <Text style={styles.title}>My Money</Text>
           <Text style={styles.subtitle}>Create your account</Text>
         </View>
 
