@@ -7,7 +7,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Get forecast
-router.get('/', async (req: AuthRequest, res, next) => {
+router.get('/', async (req: any, res: any, next: any) => {
   try {
     const userId = req.user!.id;
     const days = parseInt(req.query.days as string) || 30;
@@ -61,7 +61,7 @@ router.get('/', async (req: AuthRequest, res, next) => {
 });
 
 // What-if scenario
-router.post('/what-if', async (req: AuthRequest, res, next) => {
+router.post('/what-if', async (req: any, res: any, next: any) => {
   try {
     const schema = z.object({
       scenarioName: z.string(),

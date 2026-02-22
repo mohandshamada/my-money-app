@@ -11,6 +11,7 @@ import { transactionRouter } from './routes/transactions';
 import { budgetRouter } from './routes/budgets';
 import { forecastRouter } from './routes/forecast';
 import { bankRouter } from './routes/bank';
+import { aiRouter } from './routes/ai';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 
@@ -55,6 +56,7 @@ app.use('/api/transactions', authMiddleware, transactionRouter);
 app.use('/api/budgets', authMiddleware, budgetRouter);
 app.use('/api/forecast', authMiddleware, forecastRouter);
 app.use('/api/bank', authMiddleware, bankRouter);
+app.use('/api/ai', authMiddleware, aiRouter);
 
 // Error handling
 app.use(errorHandler);

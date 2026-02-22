@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { AuthRequest } from '../middleware/auth';
@@ -19,7 +19,7 @@ const transactionSchema = z.object({
 });
 
 // Get all transactions
-router.get('/', async (req: AuthRequest, res, next) => {
+router.get('/', async (req: any, res: any, next: any) => {
   try {
     const userId = req.user!.id;
     const { startDate, endDate, category, limit = '20', offset = '0' } = req.query;
@@ -58,7 +58,7 @@ router.get('/', async (req: AuthRequest, res, next) => {
 });
 
 // Create transaction
-router.post('/', async (req: AuthRequest, res, next) => {
+router.post('/', async (req: any, res: any, next: any) => {
   try {
     const data = transactionSchema.parse(req.body);
     const userId = req.user!.id;
@@ -78,7 +78,7 @@ router.post('/', async (req: AuthRequest, res, next) => {
 });
 
 // Update transaction
-router.put('/:id', async (req: AuthRequest, res, next) => {
+router.put('/:id', async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const data = transactionSchema.partial().parse(req.body);
@@ -99,7 +99,7 @@ router.put('/:id', async (req: AuthRequest, res, next) => {
 });
 
 // Delete transaction
-router.delete('/:id', async (req: AuthRequest, res, next) => {
+router.delete('/:id', async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const userId = req.user!.id;
@@ -115,7 +115,7 @@ router.delete('/:id', async (req: AuthRequest, res, next) => {
 });
 
 // Import CSV
-router.post('/import', async (req: AuthRequest, res, next) => {
+router.post('/import', async (req: any, res: any, next: any) => {
   try {
     // Placeholder for CSV import logic
     // Would parse CSV, map columns, create transactions

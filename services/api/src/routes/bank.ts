@@ -20,7 +20,7 @@ const plaidConfig = new Configuration({
 const plaidClient = new PlaidApi(plaidConfig);
 
 // Create link token
-router.post('/link-token', async (req: AuthRequest, res, next) => {
+router.post('/link-token', async (req: any, res: any, next: any) => {
   try {
     const userId = req.user!.id;
     
@@ -40,7 +40,7 @@ router.post('/link-token', async (req: AuthRequest, res, next) => {
 });
 
 // Exchange public token for access token
-router.post('/exchange-token', async (req: AuthRequest, res, next) => {
+router.post('/exchange-token', async (req: any, res: any, next: any) => {
   try {
     const userId = req.user!.id;
     const { public_token, institution_name, institution_logo } = req.body;
@@ -75,7 +75,7 @@ router.post('/exchange-token', async (req: AuthRequest, res, next) => {
 });
 
 // Get connected accounts
-router.get('/accounts', async (req: AuthRequest, res, next) => {
+router.get('/accounts', async (req: any, res: any, next: any) => {
   try {
     const userId = req.user!.id;
     
@@ -91,7 +91,7 @@ router.get('/accounts', async (req: AuthRequest, res, next) => {
 });
 
 // Sync transactions manually
-router.post('/sync/:itemId', async (req: AuthRequest, res, next) => {
+router.post('/sync/:itemId', async (req: any, res: any, next: any) => {
   try {
     const userId = req.user!.id;
     const { itemId } = req.params;
@@ -113,7 +113,7 @@ router.post('/sync/:itemId', async (req: AuthRequest, res, next) => {
 });
 
 // Disconnect bank
-router.delete('/disconnect/:itemId', async (req: AuthRequest, res, next) => {
+router.delete('/disconnect/:itemId', async (req: any, res: any, next: any) => {
   try {
     const userId = req.user!.id;
     const { itemId } = req.params;

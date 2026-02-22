@@ -16,7 +16,7 @@ const budgetSchema = z.object({
 });
 
 // Get all budgets
-router.get('/', async (req: AuthRequest, res, next) => {
+router.get('/', async (req: any, res: any, next: any) => {
   try {
     const userId = req.user!.id;
     
@@ -60,7 +60,7 @@ router.get('/', async (req: AuthRequest, res, next) => {
 });
 
 // Create budget
-router.post('/', async (req: AuthRequest, res, next) => {
+router.post('/', async (req: any, res: any, next: any) => {
   try {
     const data = budgetSchema.parse(req.body);
     const userId = req.user!.id;
@@ -81,7 +81,7 @@ router.post('/', async (req: AuthRequest, res, next) => {
 });
 
 // Update budget
-router.put('/:id', async (req: AuthRequest, res, next) => {
+router.put('/:id', async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const data = budgetSchema.partial().parse(req.body);
@@ -103,7 +103,7 @@ router.put('/:id', async (req: AuthRequest, res, next) => {
 });
 
 // Delete budget
-router.delete('/:id', async (req: AuthRequest, res, next) => {
+router.delete('/:id', async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const userId = req.user!.id;

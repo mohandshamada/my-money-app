@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { X, Calendar, Tag, Repeat } from 'lucide-react'
 import { createTransaction } from '../store/transactionSlice'
+import { AICategorizer } from './AICategorizer'
 import { AppDispatch } from '../store'
 
 interface AddTransactionModalProps {
@@ -157,6 +158,17 @@ export function AddTransactionModal({ isOpen, onClose }: AddTransactionModalProp
             {/* Category */}
             <div>
               <label className="block text-sm font-medium mb-1">Category</label>
+              
+              {/* AI Categorizer */}
+              <div className="mb-3">
+                <AICategorizer
+                  merchant={formData.merchant}
+                  description={formData.description}
+                  amount={parseFloat(formData.amount) || 0}
+                  onCategorySelect={(category) => setFormData({ ...formData, category })}
+                />
+              </div>
+              
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
