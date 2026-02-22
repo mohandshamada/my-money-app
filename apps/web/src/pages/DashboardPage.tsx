@@ -1,16 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight, RefreshCw, Award } from 'lucide-react'
 import { RootState } from '../store'
 import { fetchTransactions } from '../store/transactionSlice'
 import { SpendingChart, BalanceHistoryChart } from '../components/Charts'
 import { SafeToSpend } from '../components/SafeToSpend'
 import { ProjectedCashFlow } from '../components/ProjectedCashFlow'
 import { AIHub, AIFab } from '../components/AIHub'
+import { MonthInReview } from '../components/MonthInReview'
+import { BudgetRebalancer, useBudgetAlert } from '../components/BudgetRebalancer'
 
 export function DashboardPage() {
   const dispatch = useDispatch()
   const [showAIHub, setShowAIHub] = useState(false)
+  const [showMonthReview, setShowMonthReview] = useState(false)
+  const [showRebalancer, setShowRebalancer] = useState(false)
+  const budgetAlert = useBudgetAlert()
   const { transactions } = useSelector((state: RootState) => state.transactions)
 
   useEffect(() => {
@@ -191,6 +196,32 @@ export function DashboardPage() {
         <div className="card">
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
           <div className="space-y-3">
+            <button
+              onClick={() => setShowMonthReview(true)}
+              className="w-full text-left p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg hover:from-purple-100 hover:to-blue-100 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-purple-600" />
+                <p className="font-medium text-purple-800 dark:text-purple-400">Month in Review</p>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">See your spending highlights</p>
+            </button>
+            
+            {budgetAlert?.showRebalancer && (
+              <button
+                onClick={() => setShowRebalancer(true)}
+                className="w-full text-left p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="h-5 w-5 text-yellow-600" />
+                    <p className="font-medium text-yellow-800 dark:text-yellow-400">Rebalance Budget</p>
+                  </div>
+                  <span className="text-xs bg-yellow-200 px-2 py-1 rounded-full">{budgetAlert.message}</span>
+                </div>
+              </button>
+            )}
+            
             <a 
               href="/transactions" 
               className="block p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
@@ -205,19 +236,18 @@ export function DashboardPage() {
               <p className="font-medium">Set Up Budget</p>
               <p className="text-sm text-gray-600 dark:text-gray-400">Create a budget for this month</p>
             </a>
-            <a 
-              href="/forecast" 
-              className="block p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <p className="font-medium">View Forecast</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">See your financial future</p>
-            </a>
           </div>
         </div>
       </div>
 
       {/* AI Hub */}
       {showAIHub && <AIHub onClose={() => setShowAIHub(false)} />}
+      
+      {/* Month in Review */}
+      {showMonthReview && <MonthInReview isOpen={showMonthReview} onClose={() => setShowMonthReview(false)} />}
+      
+      {/* Budget Rebalancer */}
+      {showRebalancer && <BudgetRebalancer isOpen={showRebalancer} onClose={() => setShowRebalancer(false)} />}
       
       {/* AI FAB */}
       <AIFab onClick={() => setShowAIHub(true)} />
