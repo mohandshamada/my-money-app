@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Bell, Lock, CreditCard, User, Palette, Building2 } from 'lucide-react'
+import { Bell, Lock, CreditCard, User, Palette, Building2, Repeat } from 'lucide-react'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useToast } from '../components/Toast'
 import { PlaidLink } from '../components/PlaidLink'
+import { SubscriptionManager } from '../components/SubscriptionManager'
 
 export function SettingsPage() {
   const { showToast } = useToast()
@@ -14,6 +15,7 @@ export function SettingsPage() {
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Lock },
     { id: 'banking', label: 'Bank Accounts', icon: Building2 },
+    { id: 'subscriptions', label: 'Subscriptions', icon: Repeat },
     { id: 'billing', label: 'Billing', icon: CreditCard },
   ]
 
@@ -207,6 +209,12 @@ export function SettingsPage() {
                 Connect your bank accounts to automatically sync transactions.
               </p>
               <PlaidLink />
+            </div>
+          )}
+
+          {activeTab === 'subscriptions' && (
+            <div className="space-y-6">
+              <SubscriptionManager />
             </div>
           )}
 

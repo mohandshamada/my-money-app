@@ -4,6 +4,8 @@ import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDow
 import { RootState } from '../store'
 import { fetchTransactions } from '../store/transactionSlice'
 import { SpendingChart, BalanceHistoryChart } from '../components/Charts'
+import { SafeToSpend } from '../components/SafeToSpend'
+import { ProjectedCashFlow } from '../components/ProjectedCashFlow'
 
 export function DashboardPage() {
   const dispatch = useDispatch()
@@ -121,6 +123,16 @@ export function DashboardPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* New Feature Widgets */}
+      <div className="grid lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-1">
+          <SafeToSpend />
+        </div>
+        <div className="lg:col-span-2">
+          <ProjectedCashFlow />
+        </div>
       </div>
 
       {/* Charts Row */}
