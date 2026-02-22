@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { RequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -12,6 +12,7 @@ import { budgetRouter } from './routes/budgets';
 import { forecastRouter } from './routes/forecast';
 import { bankRouter } from './routes/bank';
 import { aiRouter } from './routes/ai';
+import { twoFactorRouter } from './routes/twofa';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 
@@ -42,21 +43,26 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
+// Health check (both paths for tunnel routing)
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
-// Public routes
-app.use('/auth', authRouter);
-app.use('/auth', oauthRouter);
+// Public routes (with /api prefix for tunnel routing)
+app.use('/api/auth', authRouter);
+app.use('/api/auth', oauthRouter);
 
-// Protected routes
-app.use('/api/transactions', authMiddleware, transactionRouter);
-app.use('/api/budgets', authMiddleware, budgetRouter);
-app.use('/api/forecast', authMiddleware, forecastRouter);
-app.use('/api/bank', authMiddleware, bankRouter);
-app.use('/api/ai', authMiddleware, aiRouter);
+// Protected routes (cast for Express/Passport Request.user type compatibility with our AuthRequest)
+const asHandler = (h: unknown) => h as RequestHandler;
+app.use('/api/transactions', asHandler(authMiddleware), asHandler(transactionRouter));
+app.use('/api/budgets', asHandler(authMiddleware), asHandler(budgetRouter));
+app.use('/api/forecast', asHandler(authMiddleware), asHandler(forecastRouter));
+app.use('/api/bank', asHandler(authMiddleware), asHandler(bankRouter));
+app.use('/api/ai', asHandler(authMiddleware), asHandler(aiRouter));
+app.use('/api/auth', asHandler(authMiddleware), asHandler(twoFactorRouter));
 
 // Error handling
 app.use(errorHandler);

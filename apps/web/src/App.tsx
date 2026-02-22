@@ -1,44 +1,26 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import { RootState } from './store'
+import { Routes, Route } from 'react-router-dom'
 import { Layout } from './components/Layout'
-import { LandingPage } from './pages/LandingPage'
-import { LoginPage } from './pages/LoginPage'
-import { RegisterPage } from './pages/RegisterPage'
-import { OAuthCallback } from './pages/OAuthCallback'
 import { DashboardPage } from './pages/DashboardPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { BudgetsPage } from './pages/BudgetsPage'
 import { ForecastPage } from './pages/ForecastPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
 
-function App() {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
-
+export function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={
-          isAuthenticated ? <Navigate to="/dashboard" /> : <LandingPage />
-        } />
-        <Route path="/login" element={
-          isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />
-        } />
-        <Route path="/register" element={
-          isAuthenticated ? <Navigate to="/dashboard" /> : <RegisterPage />
-        } />
-        <Route path="/oauth/callback" element={<OAuthCallback />} />
-        
-        <Route element={<Layout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/budgets" element={<BudgetsPage />} />
-          <Route path="/forecast" element={<ForecastPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Route>
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/" element={<Layout />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="transactions" element={<TransactionsPage />} />
+        <Route path="budgets" element={<BudgetsPage />} />
+        <Route path="forecast" element={<ForecastPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+      </Route>
+    </Routes>
   )
 }
-
-export default App

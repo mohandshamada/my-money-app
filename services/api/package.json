@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",
+    "@simplewebauthn/server": "^13.2.3",
+    "@simplewebauthn/typescript-types": "^8.3.4",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -22,6 +24,8 @@
     "express-rate-limit": "^7.2.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "otpauth": "^9.5.0",
+    "otplib": "^13.3.0",
     "passport": "^0.7.0",
     "passport-apple": "^2.0.2",
     "passport-facebook": "^3.0.0",
@@ -29,6 +33,7 @@
     "passport-microsoft": "^2.1.0",
     "pg": "^8.11.3",
     "plaid": "^41.3.0",
+    "qrcode": "^1.5.4",
     "redis": "^4.6.13",
     "zod": "^3.22.4"
   },

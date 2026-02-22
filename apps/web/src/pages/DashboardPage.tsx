@@ -10,9 +10,15 @@ import { AIHub, AIFab } from '../components/AIHub'
 import { MonthInReview } from '../components/MonthInReview'
 import { BudgetRebalancer, useBudgetAlert } from '../components/BudgetRebalancer'
 import { CashFlowSankey } from '../components/CashFlowSankey'
+import { BillCalendar } from '../components/BillCalendar'
+import { DebtPayoffCalculator } from '../components/DebtPayoffCalculator'
+import { SavingsGoals } from '../components/SavingsGoals'
+import { SpendingStreaks } from '../components/SpendingStreaks'
+import { useCurrency } from '../contexts/CurrencyContext'
 
 export function DashboardPage() {
   const dispatch = useDispatch()
+  const { formatAmount } = useCurrency()
   const [showAIHub, setShowAIHub] = useState(false)
   const [showMonthReview, setShowMonthReview] = useState(false)
   const [showRebalancer, setShowRebalancer] = useState(false)
@@ -61,21 +67,21 @@ export function DashboardPage() {
   const statCards = [
     { 
       title: 'Current Balance', 
-      value: `$${stats.balance.toFixed(2)}`, 
+      value: formatAmount(stats.balance), 
       icon: DollarSign, 
       trend: stats.balance >= 0 ? 'up' : 'down',
       color: stats.balance >= 0 ? 'text-green-600' : 'text-red-600'
     },
     { 
       title: 'Income', 
-      value: `$${stats.income.toFixed(2)}`, 
+      value: formatAmount(stats.income), 
       icon: TrendingUp, 
       trend: 'up',
       color: 'text-green-600'
     },
     { 
       title: 'Expenses', 
-      value: `$${stats.expenses.toFixed(2)}`, 
+      value: formatAmount(stats.expenses), 
       icon: TrendingDown, 
       trend: 'down',
       color: 'text-red-600'
@@ -138,6 +144,18 @@ export function DashboardPage() {
         </div>
       </div>
 
+      {/* Bill Calendar & Streaks */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+        <BillCalendar />
+        <SpendingStreaks />
+      </div>
+
+      {/* Debt Payoff & Savings Goals */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+        <DebtPayoffCalculator />
+        <SavingsGoals />
+      </div>
+
       {/* Bottom Section */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Transactions */}
@@ -166,7 +184,7 @@ export function DashboardPage() {
                   </div>
                 </div>
                 <span className={`font-semibold ${t.isExpense ? 'text-red-600' : 'text-green-600'}`}>
-                  {t.isExpense ? '-' : '+'}${t.amount.toFixed(2)}
+                  {t.isExpense ? '-' : '+'}{formatAmount(t.amount)}
                 </span>
               </div>
             ))}

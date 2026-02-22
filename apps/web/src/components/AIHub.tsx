@@ -333,7 +333,7 @@ export function AIFab({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all z-40"
+      className="fixed bottom-24 right-6 p-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all z-40"
     >
       <Sparkles className="h-6 w-6" />
     </button>

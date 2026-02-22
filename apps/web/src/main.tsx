@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { store } from './store'
 import { ToastProvider } from './components/Toast'
+import { CurrencyProvider } from './contexts/CurrencyContext'
 import App from './App'
 import './index.css'
 
@@ -20,9 +21,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
+        <CurrencyProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </CurrencyProvider>
       </QueryClientProvider>
     </Provider>
   </React.StrictMode>,

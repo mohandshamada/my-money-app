@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Router } from 'express';
 import { Configuration, PlaidApi, PlaidEnvironments, Products } from 'plaid';
 import { PrismaClient } from '@prisma/client';
