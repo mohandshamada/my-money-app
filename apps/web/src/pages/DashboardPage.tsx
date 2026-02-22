@@ -3,12 +3,13 @@ import { useDispatch, useSelector } from 'react-redux'
 import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight, RefreshCw, Award } from 'lucide-react'
 import { RootState } from '../store'
 import { fetchTransactions } from '../store/transactionSlice'
-import { SpendingChart, BalanceHistoryChart } from '../components/Charts'
+import { SpendingChart } from '../components/Charts'
 import { SafeToSpend } from '../components/SafeToSpend'
 import { ProjectedCashFlow } from '../components/ProjectedCashFlow'
 import { AIHub, AIFab } from '../components/AIHub'
 import { MonthInReview } from '../components/MonthInReview'
 import { BudgetRebalancer, useBudgetAlert } from '../components/BudgetRebalancer'
+import { CashFlowSankey } from '../components/CashFlowSankey'
 
 export function DashboardPage() {
   const dispatch = useDispatch()
@@ -56,20 +57,6 @@ export function DashboardPage() {
   }, [transactions])
 
   // Balance history for chart (last 30 days)
-  const balanceHistory = useMemo(() => {
-    const sorted = [...transactions].sort((a, b) => 
-      new Date(a.date).getTime() - new Date(b.date).getTime()
-    )
-    
-    let runningBalance = 0
-    return sorted.slice(-30).map(t => {
-      runningBalance += t.isExpense ? -t.amount : t.amount
-      return {
-        date: t.date,
-        balance: runningBalance
-      }
-    })
-  }, [transactions])
 
   const statCards = [
     { 
@@ -144,10 +131,7 @@ export function DashboardPage() {
 
       {/* Charts Row */}
       <div className="grid lg:grid-cols-2 gap-6 mb-8">
-        <div className="card">
-          <h2 className="text-lg font-semibold mb-4">Balance History</h2>
-          <BalanceHistoryChart data={balanceHistory} />
-        </div>
+        <CashFlowSankey />
         <div className="card">
           <h2 className="text-lg font-semibold mb-4">Spending by Category</h2>
           <SpendingChart data={spendingByCategory} />
