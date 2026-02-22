@@ -284,4 +284,24 @@ Respond with JSON:
   }
 });
 
-export { router as aiRouter };
+// Receipt OCR endpoint
+router.post('/scan-receipt', async (req: any, res: any, next: any) => {
+  try {
+    // In production, use Google Vision API, AWS Textract, or Tesseract.js
+    // For demo, return mock data
+    res.json({
+      merchant: 'Whole Foods Market',
+      amount: 67.43,
+      date: new Date().toISOString().split('T')[0],
+      items: [
+        { name: 'Organic Bananas', price: 2.99 },
+        { name: 'Almond Milk', price: 4.49 },
+        { name: 'Chicken Breast', price: 12.99 }
+      ],
+      category: 'groceries',
+      confidence: 0.92
+    });
+  } catch (error) {
+    next(error);
+  }
+});export { router as aiRouter };

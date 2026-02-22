@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { RootState } from '../store'
@@ -6,9 +6,11 @@ import { fetchTransactions } from '../store/transactionSlice'
 import { SpendingChart, BalanceHistoryChart } from '../components/Charts'
 import { SafeToSpend } from '../components/SafeToSpend'
 import { ProjectedCashFlow } from '../components/ProjectedCashFlow'
+import { AIHub, AIFab } from '../components/AIHub'
 
 export function DashboardPage() {
   const dispatch = useDispatch()
+  const [showAIHub, setShowAIHub] = useState(false)
   const { transactions } = useSelector((state: RootState) => state.transactions)
 
   useEffect(() => {
@@ -213,6 +215,12 @@ export function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Hub */}
+      {showAIHub && <AIHub onClose={() => setShowAIHub(false)} />}
+      
+      {/* AI FAB */}
+      <AIFab onClick={() => setShowAIHub(true)} />
     </div>
   )
 }
