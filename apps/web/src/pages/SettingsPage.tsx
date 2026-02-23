@@ -1,6 +1,10 @@
 import { CurrencySelector } from '../components/CurrencySelector'
 import { useState, useEffect } from 'react'
-import { Shield, ShieldCheck, Key, AlertCircle, Check, X } from 'lucide-react'
+import { Shield, ShieldCheck, Key, AlertCircle, Check, X, Fingerprint, Smartphone, Trash2 } from 'lucide-react'
+import {
+  startRegistration,
+  browserSupportsWebAuthn,
+} from '@simplewebauthn/browser';
 
 export function SettingsPage() {
   const [currency, setCurrency] = useState('USD')
@@ -16,6 +20,12 @@ export function SettingsPage() {
   const [backupCodes, setBackupCodes] = useState<string[]>([])
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  // Passkeys state
+  const [passkeys, setPasskeys] = useState<any[]>([])
+  const [webAuthnSupported, setWebAuthnSupported] = useState(false)
+  const [registeringPasskey, setRegisteringPasskey] = useState(false)
+  const [newPasskeyName, setNewPasskeyName] = useState('')
 
   useEffect(() => {
     // Fetch user data
@@ -38,7 +48,28 @@ export function SettingsPage() {
       }
     }
     fetchUser()
+
+    // Check WebAuthn support
+    setWebAuthnSupported(browserSupportsWebAuthn())
+
+    // Fetch passkeys
+    fetchPasskeys()
   }, [])
+
+  const fetchPasskeys = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/auth/passkeys', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setPasskeys(data.passkeys || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch passkeys:', err)
+    }
+  }
 
   const handleEnable2FA = async () => {
     setLoading(true)
@@ -126,6 +157,78 @@ export function SettingsPage() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRegisterPasskey = async () => {
+    if (!webAuthnSupported) {
+      setError('Passkeys are not supported in this browser')
+      return
+    }
+
+    setRegisteringPasskey(true)
+    setError('')
+    try {
+      const token = localStorage.getItem('token')
+
+      // Get registration options
+      const startRes = await fetch('/api/auth/passkey/register/start', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      const options = await startRes.json()
+
+      // Start WebAuthn registration
+      const attResp = await startRegistration(options)
+
+      // Verify registration
+      const verifyRes = await fetch('/api/auth/passkey/register/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          credential: attResp,
+          name: newPasskeyName || `${navigator.platform} Passkey`
+        })
+      })
+
+      const result = await verifyRes.json()
+      if (!verifyRes.ok) throw new Error(result.error || 'Registration failed')
+
+      setSuccess('Passkey registered successfully!')
+      setNewPasskeyName('')
+      fetchPasskeys()
+    } catch (err: any) {
+      if (err.name === 'NotAllowedError') {
+        setError('Registration cancelled')
+      } else {
+        setError(err.message || 'Failed to register passkey')
+      }
+    } finally {
+      setRegisteringPasskey(false)
+    }
+  }
+
+  const handleDeletePasskey = async (id: string) => {
+    if (!confirm('Remove this passkey?')) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/auth/passkeys/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (!res.ok) throw new Error('Failed to delete passkey')
+
+      setSuccess('Passkey removed')
+      fetchPasskeys()
+    } catch (err: any) {
+      setError(err.message)
     }
   }
 
@@ -287,20 +390,105 @@ export function SettingsPage() {
             </div>
           )}
 
-          {/* Passkeys (Coming Soon) */}
-          <div className="flex items-center justify-between py-3 opacity-50">
-            <div className="flex items-center gap-3">
-              <Key className="h-5 w-5" />
-              <div>
-                <p className="font-medium text-sm md:text-base">Passkeys</p>
-                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                  Use Face ID, Touch ID, or security key
-                </p>
+          {/* Passkeys */}
+          <div className="border-b dark:border-gray-700 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Fingerprint className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <p className="font-medium text-sm md:text-base">Passkeys</p>
+                  <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+                    Use Face ID, Touch ID, or security key
+                  </p>
+                </div>
               </div>
+              {webAuthnSupported && (
+                <button
+                  onClick={() => setRegisteringPasskey(true)}
+                  className="text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline touch-manipulation"
+                >
+                  + Add
+                </button>
+              )}
             </div>
-            <span className="text-xs text-gray-400 dark:text-gray-500 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
-              Coming Soon
-            </span>
+
+            {/* Passkey list */}
+            {passkeys.length > 0 && (
+              <div className="space-y-2 mt-3">
+                {passkeys.map((pk) => (
+                  <div key={pk.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Smartphone className="h-4 w-4 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium">{pk.name || 'Passkey'}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Added {new Date(pk.created_at).toLocaleDateString()}
+                          {pk.last_used_at && ` · Last used ${new Date(pk.last_used_at).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDeletePasskey(pk.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg touch-manipulation"
+                      title="Remove passkey"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add passkey modal */}
+            {registeringPasskey && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Add Passkey</h3>
+                    <button
+                      onClick={() => setRegisteringPasskey(false)}
+                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded touch-manipulation"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Name (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={newPasskeyName}
+                        onChange={(e) => setNewPasskeyName(e.target.value)}
+                        placeholder="e.g., MacBook Pro, iPhone"
+                        className="w-full px-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                      />
+                    </div>
+
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      You'll be prompted to use Face ID, Touch ID, or your security key to create a passkey.
+                    </p>
+
+                    <button
+                      onClick={handleRegisterPasskey}
+                      disabled={loading}
+                      className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 touch-manipulation flex items-center justify-center gap-2"
+                    >
+                      <Fingerprint className="h-5 w-5" />
+                      {loading ? 'Registering...' : 'Create Passkey'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!webAuthnSupported && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Passkeys are not supported in this browser. Try Chrome, Safari, or Edge.
+              </p>
+            )}
           </div>
         </div>
       </div>

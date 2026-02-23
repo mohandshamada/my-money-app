@@ -14,6 +14,7 @@ import { forecastRouter } from './routes/forecast';
 import { bankRouter } from './routes/bank';
 import { aiRouter } from './routes/ai';
 import { twoFactorRouter } from './routes/twofa';
+import { passkeyRouter } from './routes/passkeys';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 
@@ -71,23 +72,32 @@ app.use('/api/auth/me', protectedAuthHandler, (req: any, res: any, next: any) =>
   const userId = req.user?.id;
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
   
-  prisma.user.findUnique({
+  prisma.users.findUnique({
     where: { id: userId },
     select: {
       id: true,
       email: true,
-      fullName: true,
+      full_name: true,
       timezone: true,
       currency: true,
-      twoFactorEnabled: true,
-      createdAt: true
+      two_factor_enabled: true,
+      created_at: true
     }
   }).then(user => {
     if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ user });
+    res.json({ user: {
+      id: user.id,
+      email: user.email,
+      fullName: user.full_name,
+      timezone: user.timezone,
+      currency: user.currency,
+      twoFactorEnabled: user.two_factor_enabled,
+      createdAt: user.created_at
+    }});
   }).catch(next);
 });
 app.use('/api/auth', asHandler(authMiddleware), asHandler(twoFactorRouter));
+app.use('/api/auth', asHandler(authMiddleware), asHandler(passkeyRouter));
 
 // Error handling
 app.use(errorHandler);

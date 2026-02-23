@@ -33,7 +33,7 @@ export const authMiddleware = async (
     const decoded = jwt.verify(token, secret) as { userId: string; email: string };
     
     // Verify user still exists
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: decoded.userId },
       select: { id: true, email: true }
     });

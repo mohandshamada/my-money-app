@@ -161,7 +161,26 @@ model users {
   password_resets          password_resets[]
   refresh_tokens           refresh_tokens[]
   transactions             transactions[]
+  passkeys                 passkeys[]
 
   @@index([created_at])
   @@index([email])
+}
+
+model passkeys {
+  id             String   @id @default(cuid())
+  user_id        String
+  user           users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  credential_id  String   @unique
+  public_key     String
+  sign_count     Int
+  aaguid         String?
+  
+  name           String?
+  device_type    String?
+  created_at     DateTime @default(now())
+  last_used_at   DateTime?
+
+  @@index([user_id])
 }

@@ -12,6 +12,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
     "@reduxjs/toolkit": "^2.2.0",
+    "@simplewebauthn/browser": "^13.2.2",
     "axios": "^1.6.7",
     "lucide-react": "^0.330.0",
     "papaparse": "^5.4.1",
