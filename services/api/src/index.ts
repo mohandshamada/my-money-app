@@ -15,6 +15,7 @@ import { bankRouter } from './routes/bank';
 import { aiRouter } from './routes/ai';
 import { twoFactorRouter } from './routes/twofa';
 import { passkeyRouter } from './routes/passkeys';
+import { alertsRouter } from './routes/alerts';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 
@@ -98,6 +99,7 @@ app.use('/api/auth/me', protectedAuthHandler, (req: any, res: any, next: any) =>
 });
 app.use('/api/auth', asHandler(authMiddleware), asHandler(twoFactorRouter));
 app.use('/api/auth', asHandler(authMiddleware), asHandler(passkeyRouter));
+app.use('/api/alerts', asHandler(authMiddleware), asHandler(alertsRouter));
 
 // Error handling
 app.use(errorHandler);

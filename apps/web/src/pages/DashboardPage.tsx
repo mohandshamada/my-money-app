@@ -14,6 +14,9 @@ import { BillCalendar } from '../components/BillCalendar'
 import { DebtPayoffCalculator } from '../components/DebtPayoffCalculator'
 import { SavingsGoals } from '../components/SavingsGoals'
 import { SpendingStreaks } from '../components/SpendingStreaks'
+import { SpendingAlerts } from '../components/SpendingAlerts'
+import { NetWorthTracker } from '../components/NetWorthTracker'
+import { YoYComparison } from '../components/YoYComparison'
 import { useCurrency } from '../contexts/CurrencyContext'
 
 export function DashboardPage() {
@@ -133,6 +136,17 @@ export function DashboardPage() {
         <div className="lg:col-span-2">
           <ProjectedCashFlow />
         </div>
+      </div>
+
+      {/* Spending Alerts */}
+      <div className="mb-8">
+        <SpendingAlerts />
+      </div>
+
+      {/* Net Worth & YoY */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+        <NetWorthTracker />
+        <YoYComparison />
       </div>
 
       {/* Charts Row */}
