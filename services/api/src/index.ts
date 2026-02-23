@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import passport from 'passport';
+import { PrismaClient } from '@prisma/client';
 
 import { authRouter } from './routes/auth';
 import { oauthRouter } from './routes/oauth';
@@ -20,6 +21,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const prisma = new PrismaClient();
 
 // Security middleware
 app.use(helmet());
@@ -62,6 +64,29 @@ app.use('/api/budgets', asHandler(authMiddleware), asHandler(budgetRouter));
 app.use('/api/forecast', asHandler(authMiddleware), asHandler(forecastRouter));
 app.use('/api/bank', asHandler(authMiddleware), asHandler(bankRouter));
 app.use('/api/ai', asHandler(authMiddleware), asHandler(aiRouter));
+
+// Protected auth routes (/me, 2FA)
+const protectedAuthHandler = asHandler(authMiddleware);
+app.use('/api/auth/me', protectedAuthHandler, (req: any, res: any, next: any) => {
+  const userId = req.user?.id;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  
+  prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      timezone: true,
+      currency: true,
+      twoFactorEnabled: true,
+      createdAt: true
+    }
+  }).then(user => {
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ user });
+  }).catch(next);
+});
 app.use('/api/auth', asHandler(authMiddleware), asHandler(twoFactorRouter));
 
 // Error handling
