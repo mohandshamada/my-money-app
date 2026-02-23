@@ -16,7 +16,7 @@ passport.serializeUser((user: any, done: (err: any, id?: string) => void) => {
 
 passport.deserializeUser(async (id: string, done: (err: any, user?: any) => void) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await prisma.users.findUnique({ where: { id } });
     done(null, user);
   } catch (error) {
     done(error, null);
@@ -41,7 +41,7 @@ async function handleOAuthCallback(
     }
 
     // Check if user exists
-    let user = await prisma.user.findUnique({
+    let user = await prisma.users.findUnique({
       where: { email },
     });
 
@@ -51,7 +51,7 @@ async function handleOAuthCallback(
       if (!user[providerField]) {
         const updateData: any = {};
         updateData[providerField] = profile.id;
-        await prisma.user.update({
+        await prisma.users.update({
           where: { id: user.id },
           data: updateData,
         });
@@ -62,14 +62,15 @@ async function handleOAuthCallback(
     // Create new user
     const userData: any = {
       email,
-      fullName: profile.displayName || (profile.name?.givenName + ' ' + profile.name?.familyName),
-      avatarUrl: profile.photos?.[0]?.value,
-      passwordHash: generateRandomPassword(),
-      emailVerified: true,
+      full_name: profile.displayName || (profile.name?.givenName + ' ' + profile.name?.familyName),
+      avatar_url: profile.photos?.[0]?.value,
+      password_hash: generateRandomPassword(),
+      email_verified: true,
+      updated_at: new Date(),
     };
-    userData[`${provider}Id`] = profile.id;
+    userData[`${provider}_id`] = profile.id;
     
-    user = await prisma.user.create({ data: userData });
+    user = await prisma.users.create({ data: userData });
 
     return done(null, user);
   } catch (error) {

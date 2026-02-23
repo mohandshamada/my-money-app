@@ -302,19 +302,80 @@ Respond with JSON:
 // Receipt OCR endpoint
 router.post('/scan-receipt', async (req: any, res: any, next: any) => {
   try {
-    // In production, use Google Vision API, AWS Textract, or Tesseract.js
-    // For demo, return mock data
+    const { image } = req.body; // Base64 encoded image
+    
+    if (!image) {
+      return res.status(400).json({ error: 'Image required' });
+    }
+
+    // Use GLM-5 Vision or DeepSeek Vision for OCR
+    const visionPrompt = `Analyze this receipt image and extract the following information in JSON format:
+{
+  "merchant": "Store name",
+  "amount": total_amount_as_number,
+  "date": "YYYY-MM-DD",
+  "items": [{"name": "item name", "price": price_as_number}],
+  "category": "category_id",
+  "confidence": 0.0-1.0
+}
+
+Categories: groceries, food, shopping, gas, entertainment, bills, health, travel, other
+
+Look for:
+- Store name/logo
+- Total amount (usually at bottom)
+- Date
+- Individual line items
+
+If you can't read something clearly, set confidence lower. Respond ONLY with valid JSON.`;
+
+    // Try GLM-5 Vision API first
+    const glm5ApiKey = process.env.GLM5_API_KEY;
+    
+    if (glm5ApiKey) {
+      try {
+        const visionResponse = await axios.post(
+          'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+          {
+            model: 'glm-4v-plus',
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'text', text: visionPrompt },
+                { type: 'image_url', image_url: { url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}` } }
+              ]
+            }],
+            max_tokens: 1000
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${glm5ApiKey}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        const content = visionResponse.data.choices[0].message.content;
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          return res.json(parsed);
+        }
+      } catch (glmError) {
+        console.error('GLM-5 Vision failed:', glmError.response?.data || glmError.message);
+      }
+    }
+
+    // Fallback to mock data if no vision API available
     res.json({
-      merchant: 'Whole Foods Market',
-      amount: 67.43,
+      merchant: 'Receipt Scanned',
+      amount: 0,
       date: new Date().toISOString().split('T')[0],
-      items: [
-        { name: 'Organic Bananas', price: 2.99 },
-        { name: 'Almond Milk', price: 4.49 },
-        { name: 'Chicken Breast', price: 12.99 }
-      ],
-      category: 'groceries',
-      confidence: 0.92
+      items: [],
+      category: 'other',
+      confidence: 0.5,
+      note: 'Vision API not configured. Add GLM5_API_KEY for real OCR.'
     });
   } catch (error) {
     next(error);
