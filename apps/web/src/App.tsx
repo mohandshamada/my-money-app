@@ -8,7 +8,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 
-export function App() {
+function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -24,3 +24,5 @@ export function App() {
     </Routes>
   )
 }
+
+export default App

@@ -1,111 +1,51 @@
-# CashFlow - Personal Finance & Forecasting App
+# My Money - Personal Finance App
 
-## 🚀 What's Been Built
+A full-featured personal finance application with AI capabilities.
 
-### Backend API (`/services/api`)
-- ✅ Node.js + Express + TypeScript
-- ✅ Prisma ORM with PostgreSQL
-- ✅ JWT Authentication (register, login, refresh, logout)
-- ✅ Transaction CRUD + CSV import
-- ✅ Budget management
-- ✅ Cash flow forecasting (Monte Carlo simulation ready)
-- ✅ Bank sync endpoints (Plaid-ready)
-- ✅ Rate limiting, CORS, Helmet security
-- ✅ Input validation with Zod
+## Features
 
-### Web Frontend (`/apps/web`)
-- ✅ React + Vite + TypeScript
-- ✅ TailwindCSS with dark mode
-- ✅ Redux Toolkit state management
-- ✅ React Router navigation
-- ✅ Pages: Landing, Login, Register, Dashboard, Transactions, Budgets, Forecast
-- ✅ Responsive design
-- ✅ API integration ready
+- **Multi-Currency Support** - 50+ currencies with live exchange rates
+- **AI Smart Categorizer** - Automatic transaction categorization using GLM-5
+- **2FA/OTP Authentication** - TOTP-based two-factor authentication
+- **Bill Calendar** - Monthly view of upcoming bills and income
+- **Debt Payoff Calculator** - Snowball vs avalanche comparison
+- **Savings Goals** - Track progress toward financial goals
+- **Spending Streaks** - Gamification for saving habits
+- **Safe-to-Spend** - Real-time available spending calculation
+- **Subscription Manager** - Track and manage recurring charges
+- **Mobile-Friendly** - Responsive design with bottom navigation
 
-### Database Schema (`/services/api/prisma`)
-- ✅ Users (auth, profile)
-- ✅ Transactions (with Plaid support)
-- ✅ Budgets (flexible periods)
-- ✅ Bank Connections (Plaid tokens)
-- ✅ Bank Accounts
-- ✅ Forecasts (with scenarios)
-- ✅ Refresh Tokens
-- ✅ Password Resets
+## Tech Stack
 
-## 📁 Project Structure
+- Frontend: React + TypeScript + Vite
+- Backend: Express + Prisma + PostgreSQL
+- AI: GLM-5 (Zhipu AI)
+- Deployment: Cloudflare Tunnel + systemd
 
-```
-cashflow/
-├── apps/
-│   ├── web/          # React web app (Vite + TS + Tailwind)
-│   ├── ios/          # React Native iOS (TODO)
-│   └── android/      # React Native Android (TODO)
-├── packages/
-│   ├── shared/       # Shared utilities (TODO)
-│   ├── types/        # TypeScript types (TODO)
-│   └── ui/           # Shared UI components (TODO)
-├── services/
-│   ├── api/          # Backend API (COMPLETE)
-│   ├── bank-sync/    # Plaid service (TODO)
-│   └── forecast/     # Monte Carlo engine (TODO)
-└── docs/             # Documentation
-
-```
-
-## 🏃 Quick Start
-
-### Backend
+## Setup
 
 ```bash
-cd services/api
-cp .env.example .env
-# Edit .env with your database credentials
+# Install dependencies
 npm install
+
+# Setup database
 npx prisma migrate dev
+
+# Run development
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-### Frontend
+## Environment Variables
 
-```bash
-cd apps/web
-npm install
-npm run dev
+```
+DATABASE_URL=postgresql://...
+JWT_SECRET=your-secret
+GLM5_API_KEY=your-api-key
 ```
 
-## 📱 Mobile Apps (Phase 2)
-
-The mobile apps (iOS & Android) will use React Native with shared codebase:
-
-- Same Redux store structure
-- Shared API client
-- Platform-specific navigation (React Navigation)
-- Native performance with Expo or bare workflow
-
-## 🎯 Next Steps
-
-1. **Database Setup** - Run migrations and seed data
-2. **API Testing** - Test all endpoints with the web frontend
-3. **Mobile Apps** - Scaffold React Native projects
-4. **Bank Sync** - Integrate Plaid for live bank connections
-5. **Forecasting** - Implement Monte Carlo simulation
-6. **Deploy** - Deploy to DigitalOcean/AWS
-
-## 🔧 Environment Variables
-
-Backend (`.env`):
-- `DATABASE_URL` - PostgreSQL connection
-- `JWT_SECRET` - JWT signing key
-- `PLAID_CLIENT_ID` - Plaid credentials
-- `PLAID_SECRET` - Plaid credentials
-
-Frontend (`.env`):
-- `VITE_API_URL` - Backend URL
-
-## 📄 License
+## License
 
 MIT
-
----
-
-*Built with 5 AI agents working in parallel (attempted 😅). Ended up building directly for reliability.*

@@ -17,9 +17,12 @@ router.post('/2fa/setup', async (req: any, res: any) => {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Generate secret
-    const secret = crypto.randomBytes(20).toString('base64');
-    
+    // Generate proper base32 secret for TOTP (A-Z, 2-7 only)
+    const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    const validSecret = Array.from({ length: 32 }, () => 
+      base32Chars[Math.floor(Math.random() * base32Chars.length)]
+    ).join('');
+
     // Create TOTP object
     const totp = new OTPAuth.TOTP({
       issuer: 'My Money',
@@ -27,7 +30,7 @@ router.post('/2fa/setup', async (req: any, res: any) => {
       algorithm: 'SHA1',
       digits: 6,
       period: 30,
-      secret: OTPAuth.Secret.fromBase32(secret)
+      secret: OTPAuth.Secret.fromBase32(validSecret)
     });
     
     // Get URI for QR code
@@ -40,12 +43,12 @@ router.post('/2fa/setup', async (req: any, res: any) => {
     await prisma.user.update({
       where: { id: userId },
       data: { 
-        twoFactorSecret: secret,
+        twoFactorSecret: validSecret,
         twoFactorEnabled: false
       }
     });
 
-    res.json({ secret, qrCode: qrCodeUrl, otpauth });
+    res.json({ secret: validSecret, qrCode: qrCodeUrl, otpauth });
   } catch (error) {
     console.error('2FA setup error:', error);
     res.status(500).json({ error: 'Failed to setup 2FA' });
