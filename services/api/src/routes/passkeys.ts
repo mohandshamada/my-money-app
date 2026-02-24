@@ -7,7 +7,13 @@ import {
   verifyAuthenticationResponse,
 } from '@simplewebauthn/server';
 import { PrismaClient } from '@prisma/client';
-import { isoBase64URLToBuffer, isoBufferToBase64URLString } from '@simplewebauthn/server/helpers';
+import { isoBase64URLToBuffer, isoUint8ArrayToBase64URL } from '@simplewebauthn/server/helpers';
+import jwt from 'jsonwebtoken';
+
+// Helper to encode string to base64url
+const toBase64Url = (str: string): string => {
+  return Buffer.from(str).toString('base64url');
+};
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -16,6 +22,21 @@ const prisma = new PrismaClient();
 const rpName = 'My Money';
 const rpID = process.env.WEBAUTHN_RP_ID || 'mymoney.mshousha.uk';
 const origin = process.env.WEBAUTHN_ORIGIN || `https://${rpID}`;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+
+// Helper to sign challenge token
+const signChallenge = (challenge: string, userId?: string) => {
+  return jwt.sign({ challenge, userId }, JWT_SECRET, { expiresIn: '5m' });
+};
+
+// Helper to verify challenge token
+const verifyChallenge = (token: string) => {
+  try {
+    return jwt.verify(token, JWT_SECRET) as { challenge: string; userId?: string };
+  } catch (e) {
+    return null;
+  }
+};
 
 // Generate registration options
 router.post('/passkey/register/start', async (req: any, res: any) => {
@@ -29,31 +50,44 @@ router.post('/passkey/register/start', async (req: any, res: any) => {
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Get existing passkey credential IDs
-    const excludeCredentials = user.passkeys.map((pk) => ({
+    // Get existing passkey credential IDs to prevent re-registration
+    const excludeCredentials: any[] = user.passkeys.map((pk) => ({
       id: pk.credential_id,
-      type: 'public-key' as const,
-      transports: ['internal'] as const,
+      type: 'public-key',
+      transports: ['internal'],
     }));
 
     const options = await generateRegistrationOptions({
       rpName,
       rpID,
-      userID: userId,
+      userID: Uint8Array.from(Buffer.from(userId)),
       userName: user.email,
       userDisplayName: user.full_name || user.email,
       excludeCredentials,
       authenticatorSelection: {
         authenticatorAttachment: 'platform',
         userVerification: 'preferred',
+        residentKey: 'preferred',
       },
     });
 
-    // Store challenge in session/temp storage (simplified - use Redis in production)
-    req.session = req.session || {};
-    req.session.challenge = options.challenge;
+    // Remove empty arrays that can cause issues with some browsers
+    const opts: any = { ...options };
+    console.log('Before cleanup - hints:', opts.hints, 'excludeCredentials:', opts.excludeCredentials);
+    if (opts.hints && Array.isArray(opts.hints) && opts.hints.length === 0) {
+      delete opts.hints;
+      console.log('Deleted empty hints array');
+    }
+    if (opts.excludeCredentials && Array.isArray(opts.excludeCredentials) && opts.excludeCredentials.length === 0) {
+      delete opts.excludeCredentials;
+      console.log('Deleted empty excludeCredentials array');
+    }
+    console.log('After cleanup - keys:', Object.keys(opts));
 
-    res.json(options);
+    // Sign challenge into a token
+    const challengeToken = signChallenge(opts.challenge, userId);
+
+    res.json({ options: opts, challengeToken });
   } catch (error) {
     console.error('Passkey registration start error:', error);
     res.status(500).json({ error: 'Failed to start passkey registration' });
@@ -63,18 +97,20 @@ router.post('/passkey/register/start', async (req: any, res: any) => {
 // Verify registration
 router.post('/passkey/register/verify', async (req: any, res: any) => {
   try {
-    const { credential, name } = req.body;
+    const { credential, challengeToken, name } = req.body;
     const userId = req.user?.id;
+    
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!challengeToken) return res.status(400).json({ error: 'Missing challenge token' });
 
-    const currentChallenge = req.session?.challenge;
-    if (!currentChallenge) {
-      return res.status(400).json({ error: 'No active registration' });
+    const decoded = verifyChallenge(challengeToken);
+    if (!decoded || decoded.userId !== userId) {
+      return res.status(400).json({ error: 'Invalid or expired challenge token' });
     }
 
     const verification = await verifyRegistrationResponse({
-      credential,
-      expectedChallenge: currentChallenge,
+      response: credential,
+      expectedChallenge: decoded.challenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
     });
@@ -90,16 +126,13 @@ router.post('/passkey/register/verify', async (req: any, res: any) => {
       data: {
         user_id: userId,
         credential_id: registrationInfo.credentialID,
-        public_key: registrationInfo.credentialPublicKey,
+        public_key: Buffer.from(registrationInfo.credentialPublicKey).toString('base64'), // Store as base64 string
         sign_count: registrationInfo.counter,
         aaguid: registrationInfo.aaguid,
         name: name || 'Passkey',
         device_type: 'platform',
       },
     });
-
-    // Clear challenge
-    delete req.session.challenge;
 
     res.json({ verified: true, passkey });
   } catch (error) {
@@ -114,12 +147,12 @@ router.post('/passkey/authenticate/start', async (req: any, res: any) => {
     const options = await generateAuthenticationOptions({
       rpID,
       userVerification: 'preferred',
+      allowCredentials: [], // Allow any credential (discoverable/resident key flow)
     });
 
-    req.session = req.session || {};
-    req.session.challenge = options.challenge;
+    const challengeToken = signChallenge(options.challenge);
 
-    res.json(options);
+    res.json({ options, challengeToken });
   } catch (error) {
     console.error('Passkey authentication start error:', error);
     res.status(500).json({ error: 'Failed to start passkey authentication' });
@@ -129,11 +162,13 @@ router.post('/passkey/authenticate/start', async (req: any, res: any) => {
 // Verify authentication
 router.post('/passkey/authenticate/verify', async (req: any, res: any) => {
   try {
-    const { credential } = req.body;
-    const currentChallenge = req.session?.challenge;
+    const { credential, challengeToken } = req.body;
 
-    if (!currentChallenge) {
-      return res.status(400).json({ error: 'No active authentication' });
+    if (!challengeToken) return res.status(400).json({ error: 'Missing challenge token' });
+
+    const decoded = verifyChallenge(challengeToken);
+    if (!decoded) {
+      return res.status(400).json({ error: 'Invalid or expired challenge token' });
     }
 
     // Find passkey by credential ID
@@ -147,13 +182,13 @@ router.post('/passkey/authenticate/verify', async (req: any, res: any) => {
     }
 
     const verification = await verifyAuthenticationResponse({
-      credential,
-      expectedChallenge: currentChallenge,
+      response: credential,
+      expectedChallenge: decoded.challenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
       authenticator: {
         credentialID: passkey.credential_id,
-        credentialPublicKey: passkey.public_key,
+        credentialPublicKey: Buffer.from(passkey.public_key, 'base64'), // Decode from base64 string
         counter: passkey.sign_count,
       },
     });
@@ -171,14 +206,10 @@ router.post('/passkey/authenticate/verify', async (req: any, res: any) => {
       },
     });
 
-    // Clear challenge
-    delete req.session.challenge;
-
     // Return user data (similar to login)
-    const jwt = require('jsonwebtoken');
     const token = jwt.sign(
       { userId: passkey.user.id, email: passkey.user.email },
-      process.env.JWT_SECRET || 'dev-secret',
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 

@@ -12,7 +12,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   
   const dispatch = useDispatch()
-  const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const { isLoading: loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth)
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" />

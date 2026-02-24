@@ -1,5 +1,6 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
+import { authenticatePasskey } from '../services/webauthn'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const AUTH_BASE = API_URL.startsWith('http') ? `${API_URL}/api` : API_URL
@@ -14,15 +15,15 @@ interface AuthState {
   user: User | null
   token: string | null
   isAuthenticated: boolean
-  loading: boolean
+  isLoading: boolean
   error: string | null
 }
 
 const initialState: AuthState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: null,
   isAuthenticated: false,
-  loading: false,
+  isLoading: true, // Start in loading state until session is validated
   error: null,
 }
 
@@ -46,6 +47,19 @@ export const register = createAsyncThunk(
   }
 )
 
+export const loginWithPasskey = createAsyncThunk(
+  'auth/loginWithPasskey',
+  async () => {
+    const data = await authenticatePasskey()
+    localStorage.setItem('token', data.token)
+    // Passkey login might not return refresh token initially, check backend
+    if (data.refreshToken) {
+      localStorage.setItem('refreshToken', data.refreshToken)
+    }
+    return data
+  }
+)
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -54,45 +68,72 @@ const authSlice = createSlice({
       state.user = null
       state.token = null
       state.isAuthenticated = false
+      state.isLoading = false
       localStorage.removeItem('token')
       localStorage.removeItem('refreshToken')
     },
     clearError: (state) => {
       state.error = null
     },
+    restoreSession: (state, action: PayloadAction<{ user: User; token: string }>) => {
+      state.user = action.payload.user
+      state.token = action.payload.token
+      state.isAuthenticated = true
+      state.isLoading = false
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload
+    },
   },
   extraReducers: (builder) => {
     builder
+      // Login
       .addCase(login.pending, (state) => {
-        state.loading = true
+        state.isLoading = true
         state.error = null
       })
       .addCase(login.fulfilled, (state, action) => {
-        state.loading = false
+        state.isLoading = false
         state.user = action.payload.user
         state.token = action.payload.token
         state.isAuthenticated = true
       })
       .addCase(login.rejected, (state, action) => {
-        state.loading = false
+        state.isLoading = false
         state.error = action.error.message || 'Login failed'
       })
+      // Register
       .addCase(register.pending, (state) => {
-        state.loading = true
+        state.isLoading = true
         state.error = null
       })
       .addCase(register.fulfilled, (state, action) => {
-        state.loading = false
+        state.isLoading = false
         state.user = action.payload.user
         state.token = action.payload.token
         state.isAuthenticated = true
       })
       .addCase(register.rejected, (state, action) => {
-        state.loading = false
+        state.isLoading = false
         state.error = action.error.message || 'Registration failed'
+      })
+      // Passkey Login
+      .addCase(loginWithPasskey.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(loginWithPasskey.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.user = action.payload.user
+        state.token = action.payload.token
+        state.isAuthenticated = true
+      })
+      .addCase(loginWithPasskey.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.error.message || 'Passkey login failed'
       })
   },
 })
 
-export const { logout, clearError } = authSlice.actions
+export const { logout, clearError, restoreSession, setLoading } = authSlice.actions
 export default authSlice.reducer

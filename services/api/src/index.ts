@@ -1,5 +1,6 @@
 import express, { RequestHandler } from 'express';
 import cors from 'cors';
+import axios from 'axios';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
@@ -32,6 +33,9 @@ app.use(cors({
   credentials: true
 }));
 
+// Trust proxy for Cloudflare tunnel
+app.set('trust proxy', 1);
+
 // Passport initialization
 app.use(passport.initialize());
 
@@ -59,6 +63,45 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/auth', oauthRouter);
 
+// OAuth callbacks (public - no auth required)
+app.get('/api/bank/callback/truelayer', async (req, res) => {
+  try {
+    const { code, error, error_description } = req.query;
+    
+    if (error) {
+      console.error('TrueLayer OAuth error:', error, error_description);
+      return res.redirect('/settings?bank_error=' + encodeURIComponent(error_description as string || error as string));
+    }
+    
+    if (!code) {
+      return res.redirect('/settings?bank_error=missing_code');
+    }
+    
+    // Exchange code for access token
+    const tokenResponse = await axios.post(
+      'https://auth.truelayer-sandbox.com/connect/token',
+      {
+        grant_type: 'authorization_code',
+        client_id: process.env.TRUELAYER_CLIENT_ID,
+        client_secret: process.env.TRUELAYER_CLIENT_SECRET,
+        code,
+        redirect_uri: `${process.env.API_URL}/api/bank/callback/truelayer`,
+      },
+      {
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+    
+    const { access_token } = tokenResponse.data;
+    
+    // Redirect to frontend with token
+    res.redirect(`/settings?bank_success=truelayer&token=${encodeURIComponent(access_token)}`);
+  } catch (err: any) {
+    console.error('TrueLayer callback error:', err.response?.data || err.message);
+    res.redirect('/settings?bank_error=callback_failed');
+  }
+});
+
 // Protected routes (cast for Express/Passport Request.user type compatibility with our AuthRequest)
 const asHandler = (h: unknown) => h as RequestHandler;
 app.use('/api/transactions', asHandler(authMiddleware), asHandler(transactionRouter));
@@ -69,7 +112,10 @@ app.use('/api/ai', asHandler(authMiddleware), asHandler(aiRouter));
 
 // Protected auth routes (/me, 2FA)
 const protectedAuthHandler = asHandler(authMiddleware);
-app.use('/api/auth/me', protectedAuthHandler, (req: any, res: any, next: any) => {
+const meRouter = express.Router();
+
+// GET /me
+meRouter.get('/', (req: any, res: any, next: any) => {
   const userId = req.user?.id;
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
   
@@ -97,6 +143,44 @@ app.use('/api/auth/me', protectedAuthHandler, (req: any, res: any, next: any) =>
     }});
   }).catch(next);
 });
+
+// PATCH /me - Update user profile
+meRouter.patch('/', (req: any, res: any, next: any) => {
+  const userId = req.user?.id;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  
+  const { currency, timezone } = req.body;
+  const updateData: any = { updated_at: new Date() };
+  
+  if (currency) updateData.currency = currency;
+  if (timezone) updateData.timezone = timezone;
+  
+  prisma.users.update({
+    where: { id: userId },
+    data: updateData,
+    select: {
+      id: true,
+      email: true,
+      full_name: true,
+      timezone: true,
+      currency: true,
+      two_factor_enabled: true,
+      created_at: true
+    }
+  }).then(user => {
+    res.json({ user: {
+      id: user.id,
+      email: user.email,
+      fullName: user.full_name,
+      timezone: user.timezone,
+      currency: user.currency,
+      twoFactorEnabled: user.two_factor_enabled,
+      createdAt: user.created_at
+    }});
+  }).catch(next);
+});
+
+app.use('/api/auth/me', protectedAuthHandler, asHandler(meRouter));
 app.use('/api/auth', asHandler(authMiddleware), asHandler(twoFactorRouter));
 app.use('/api/auth', asHandler(authMiddleware), asHandler(passkeyRouter));
 app.use('/api/alerts', asHandler(authMiddleware), asHandler(alertsRouter));

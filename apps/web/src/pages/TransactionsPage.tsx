@@ -4,13 +4,16 @@ import { Plus, Download, Search } from 'lucide-react'
 import { RootState } from '../store'
 import { fetchTransactions } from '../store/transactionSlice'
 import { TransactionModal } from '../components/TransactionModal'
+import { useCurrency } from '../contexts/CurrencyContext'
 
 export function TransactionsPage() {
+  const { formatAmount } = useCurrency()
   const dispatch = useDispatch()
   const { transactions, loading } = useSelector((state: RootState) => state.transactions)
   const [modalOpen, setModalOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all')
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     dispatch(fetchTransactions() as any)
@@ -30,9 +33,57 @@ export function TransactionsPage() {
   })
 
   const handleAddTransaction = async (data: any) => {
-    // TODO: API call to create transaction
-    console.log('Creating transaction:', data)
-    dispatch(fetchTransactions() as any)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...data,
+          date: new Date(data.date).toISOString(),
+          tags: data.tags ? data.tags.split(',').map((t: string) => t.trim()) : []
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create transaction')
+      }
+
+      dispatch(fetchTransactions() as any)
+    } catch (error) {
+      console.error('Failed to create transaction:', error)
+      alert('Failed to create transaction. Please try again.')
+    }
+  }
+
+  const handleExport = async () => {
+    try {
+      setExporting(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/transactions/export', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+
+      if (!response.ok) throw new Error('Export failed')
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `transactions-${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Export failed:', error)
+      alert('Failed to export transactions')
+    } finally {
+      setExporting(false)
+    }
   }
 
   return (
@@ -40,9 +91,13 @@ export function TransactionsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold">Transactions</h1>
         <div className="flex gap-3 w-full sm:w-auto">
-          <button className="btn-secondary flex items-center gap-2 flex-1 sm:flex-initial justify-center">
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="btn-secondary flex items-center gap-2 flex-1 sm:flex-initial justify-center"
+          >
             <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Import</span>
+            <span className="hidden sm:inline">{exporting ? 'Exporting...' : 'Export'}</span>
           </button>
           <button 
             onClick={() => setModalOpen(true)}
@@ -82,13 +137,13 @@ export function TransactionsPage() {
         <div className="card p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">Income</p>
           <p className="text-xl font-bold text-green-600">
-            ${transactions.filter(t => !t.isExpense).reduce((s, t) => s + t.amount, 0).toFixed(2)}
+            {formatAmount(transactions.filter(t => !t.isExpense).reduce((s, t) => s + t.amount, 0))}
           </p>
         </div>
         <div className="card p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">Expenses</p>
           <p className="text-xl font-bold text-red-600">
-            ${transactions.filter(t => t.isExpense).reduce((s, t) => s + t.amount, 0).toFixed(2)}
+            {formatAmount(transactions.filter(t => t.isExpense).reduce((s, t) => s + t.amount, 0))}
           </p>
         </div>
         <div className="card p-4">
@@ -98,7 +153,7 @@ export function TransactionsPage() {
               ? 'text-green-600' 
               : 'text-red-600'
           }`}>
-            ${transactions.reduce((s, t) => s + (t.isExpense ? -t.amount : t.amount), 0).toFixed(2)}
+            {formatAmount(transactions.reduce((s, t) => s + (t.isExpense ? -t.amount : t.amount), 0))}
           </p>
         </div>
       </div>
@@ -156,7 +211,8 @@ export function TransactionsPage() {
                     <td className={`py-3 px-4 text-right font-semibold ${
                       t.isExpense ? 'text-red-600' : 'text-green-600'
                     }`}>
-                      {t.isExpense ? '-' : '+'}${t.amount.toFixed(2)}
+                      {t.isExpense ? '-' : '+'}
+                      {formatAmount(t.amount)}
                     </td>
                     <td className="py-3 px-4">
                       {t.pending ? (

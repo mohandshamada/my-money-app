@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
 import { Globe } from 'lucide-react'
+import { useCurrency } from '../contexts/CurrencyContext'
 
 const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -58,16 +58,26 @@ interface CurrencySelectorProps {
   onChange?: (currency: string) => void
 }
 
-export function CurrencySelector({ value = 'USD', onChange }: CurrencySelectorProps) {
-  const [currency, setCurrency] = useState(value)
-
-  useEffect(() => {
-    localStorage.setItem('preferredCurrency', currency)
-  }, [currency])
+export function CurrencySelector({ onChange }: CurrencySelectorProps) {
+  const { currency, setCurrency } = useCurrency()
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCurrency = e.target.value
+    const newCurrency = e.target.value as any
     setCurrency(newCurrency)
+    
+    // Save to backend
+    const token = localStorage.getItem('token')
+    if (token) {
+      fetch('/api/auth/me', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ currency: newCurrency })
+      }).catch(err => console.error('Failed to save currency:', err))
+    }
+    
     onChange?.(newCurrency)
   }
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { TrendingUp, Calendar, AlertCircle, RefreshCw } from 'lucide-react'
 import { ForecastChart } from '../components/Charts'
 import axios from 'axios'
+import { useCurrency } from '../contexts/CurrencyContext'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -22,6 +23,7 @@ interface ForecastData {
 }
 
 export function ForecastPage() {
+  const { formatAmount } = useCurrency()
   const [forecastData, setForecastData] = useState<ForecastData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -128,7 +130,7 @@ export function ForecastPage() {
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Current Balance</p>
                   <p className="text-2xl font-bold">
-                    ${forecastData?.summary.currentBalance.toFixed(2) || '0.00'}
+                    {formatAmount(forecastData?.summary.currentBalance || 0)}
                   </p>
                 </div>
                 <div>
@@ -140,7 +142,7 @@ export function ForecastPage() {
                       ? 'text-green-600' 
                       : 'text-red-600'
                   }`}>
-                    ${forecastData?.summary.projectedBalance30d.toFixed(2) || '0.00'}
+                    {formatAmount(forecastData?.summary.projectedBalance30d || 0)}
                   </p>
                 </div>
                 <div className="pt-2 border-t dark:border-gray-700">
@@ -151,7 +153,7 @@ export function ForecastPage() {
                       : 'text-red-600'
                   }`}>
                     {((forecastData?.summary.projectedBalance30d || 0) - (forecastData?.summary.currentBalance || 0)) >= 0 ? '+' : ''}
-                    ${((forecastData?.summary.projectedBalance30d || 0) - (forecastData?.summary.currentBalance || 0)).toFixed(2)}
+                    {formatAmount((forecastData?.summary.projectedBalance30d || 0) - (forecastData?.summary.currentBalance || 0))}
                   </p>
                 </div>
               </div>

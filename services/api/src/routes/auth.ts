@@ -17,7 +17,7 @@ const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  fullName: z.string().optional(),
+  full_name: z.string().optional(),
   timezone: z.string().default('UTC'),
   currency: z.string().default('USD')
 });
@@ -34,7 +34,7 @@ router.post('/register', async (req, res, next) => {
     const email = data.email.trim().toLowerCase();
 
     // Check if user exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.users.findUnique({
       where: { email }
     });
 
@@ -43,37 +43,38 @@ router.post('/register', async (req, res, next) => {
     }
 
     // Hash password
-    const passwordHash = await bcrypt.hash(data.password, 12);
+    const password_hash = await bcrypt.hash(data.password, 12);
 
     // Create user
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
       data: {
         email,
-        passwordHash,
-        fullName: data.fullName,
+        password_hash: password_hash,
+        full_name: data.fullName || undefined,
         timezone: data.timezone,
-        currency: data.currency
+        currency: data.currency,
+        updated_at: new Date()
       },
-      select: { id: true, email: true, fullName: true }
+      select: { id: true, email: true, full_name: true }
     });
     
     // Generate tokens
     const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRY as jwt.SignOptions["expiresIn"] });
-    const refreshToken = crypto.randomBytes(40).toString('hex');
+    const refresh_token = crypto.randomBytes(40).toString('hex');
     
     // Store refresh token
-    await prisma.refreshToken.create({
+    await prisma.refresh_tokens.create({
       data: {
-        userId: user.id,
-        tokenHash: crypto.createHash('sha256').update(refreshToken).digest('hex'),
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+        user_id: user.id,
+        token_hash: crypto.createHash('sha256').update(refresh_token).digest('hex'),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
       }
     });
     
     res.status(201).json({
       user,
       token,
-      refreshToken
+      refresh_token
     });
   } catch (error) {
     next(error);
@@ -87,7 +88,7 @@ router.post('/login', async (req, res, next) => {
     const email = data.email.trim().toLowerCase();
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email }
     });
     
@@ -96,7 +97,7 @@ router.post('/login', async (req, res, next) => {
     }
     
     // Verify password
-    const validPassword = await bcrypt.compare(data.password, user.passwordHash);
+    const validPassword = await bcrypt.compare(data.password, user.password_hash);
     
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -104,14 +105,14 @@ router.post('/login', async (req, res, next) => {
     
     // Generate tokens
     const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRY as jwt.SignOptions["expiresIn"] });
-    const refreshToken = crypto.randomBytes(40).toString('hex');
+    const refresh_token = crypto.randomBytes(40).toString('hex');
     
     // Store refresh token
-    await prisma.refreshToken.create({
+    await prisma.refresh_tokens.create({
       data: {
-        userId: user.id,
-        tokenHash: crypto.createHash('sha256').update(refreshToken).digest('hex'),
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        user_id: user.id,
+        token_hash: crypto.createHash('sha256').update(refresh_token).digest('hex'),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       }
     });
     
@@ -119,10 +120,10 @@ router.post('/login', async (req, res, next) => {
       user: {
         id: user.id,
         email: user.email,
-        fullName: user.fullName
+        full_name: user.full_name
       },
       token,
-      refreshToken
+      refresh_token
     });
   } catch (error) {
     next(error);
@@ -132,19 +133,19 @@ router.post('/login', async (req, res, next) => {
 // Refresh token
 router.post('/refresh', async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
+    const { refresh_token } = req.body;
     
-    if (!refreshToken) {
+    if (!refresh_token) {
       return res.status(401).json({ error: 'Refresh token required' });
     }
     
-    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+    const token_hash = crypto.createHash('sha256').update(refresh_token).digest('hex');
     
-    const storedToken = await prisma.refreshToken.findFirst({
+    const storedToken = await prisma.refresh_tokens.findFirst({
       where: {
-        tokenHash,
+        token_hash,
         revoked: false,
-        expiresAt: { gt: new Date() }
+        expires_at: { gt: new Date() }
       },
       include: { user: true }
     });
@@ -155,7 +156,7 @@ router.post('/refresh', async (req, res, next) => {
     
     // Generate new access token
     const token = jwt.sign(
-      { userId: storedToken.user.id, email: storedToken.user.email },
+      { user_id: storedToken.user.id, email: storedToken.user.email },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRY as jwt.SignOptions['expiresIn'] }
     );
@@ -169,13 +170,13 @@ router.post('/refresh', async (req, res, next) => {
 // Logout
 router.post('/logout', async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
+    const { refresh_token } = req.body;
     
-    if (refreshToken) {
-      const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+    if (refresh_token) {
+      const token_hash = crypto.createHash('sha256').update(refresh_token).digest('hex');
       
-      await prisma.refreshToken.updateMany({
-        where: { tokenHash },
+      await prisma.refresh_tokens.updateMany({
+        where: { token_hash },
         data: { revoked: true }
       });
     }

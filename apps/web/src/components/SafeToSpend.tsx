@@ -2,8 +2,10 @@ import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { Wallet, Info } from 'lucide-react'
 import { RootState } from '../store'
+import { useCurrency } from '../contexts/CurrencyContext'
 
 export function SafeToSpend() {
+  const { formatAmount } = useCurrency()
   const { transactions, budgets } = useSelector((state: RootState) => ({
     transactions: state.transactions.transactions,
     budgets: state.budgets.budgets,
@@ -69,7 +71,7 @@ export function SafeToSpend() {
       <div className="flex items-start justify-between">
         <div>
           <p className="text-green-100 text-sm font-medium mb-1">Safe to Spend</p>
-          <p className="text-4xl font-bold">${safeToSpend.toFixed(2)}</p>
+          <p className="text-4xl font-bold">{formatAmount(safeToSpend)}</p>
         </div>
         <div className="bg-white/20 p-3 rounded-xl">
           <Wallet className="h-8 w-8" />
@@ -79,7 +81,7 @@ export function SafeToSpend() {
       <div className="mt-4 pt-4 border-t border-white/20">
         <div className="flex items-center justify-between text-sm">
           <span className="text-green-100">Upcoming bills this month</span>
-          <span className="font-medium">${upcomingBillsTotal.toFixed(2)}</span>
+          <span className="font-medium">{formatAmount(upcomingBillsTotal)}</span>
         </div>
       </div>
       

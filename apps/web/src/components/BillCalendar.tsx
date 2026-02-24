@@ -75,37 +75,37 @@ export function BillCalendar() {
 
   return (
     <div className="card">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5" />
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+          <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
           Bill Calendar
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={prevMonth}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             aria-label="Previous month"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
-          <span className="text-sm font-medium min-w-[140px] text-center">{monthLabel}</span>
+          <span className="text-sm sm:text-base font-medium min-w-[100px] sm:min-w-[140px] text-center truncate">{monthLabel}</span>
           <button
             onClick={nextMonth}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             aria-label="Next month"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">
         {WEEKDAYS.map((d) => (
-          <div key={d}>{d}</div>
+          <div key={d}>{d.slice(0, 3)}</div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {Array.from({ length: startOffset }, (_, i) => (
           <div key={`pad-${i}`} className="aspect-square" />
         ))}
@@ -123,21 +123,21 @@ export function BillCalendar() {
           return (
             <div
               key={day}
-              className={`aspect-square min-h-[70px] rounded-lg border p-1 flex flex-col ${
+              className={`aspect-square min-h-[44px] sm:min-h-[70px] rounded-md sm:rounded-lg border p-0.5 sm:p-1 flex flex-col ${
                 isToday
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                   : 'border-gray-200 dark:border-gray-700'
               }`}
             >
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{day}</span>
-              <div className="flex-1 overflow-auto space-y-0.5 mt-0.5">
+              <span className="text-[10px] sm:text-xs font-medium text-gray-700 dark:text-gray-300">{day}</span>
+              <div className="flex-1 overflow-hidden space-y-0.5 mt-0.5">
                 {billTotal > 0 && (
-                  <div className="text-[10px] text-red-600 dark:text-red-400 font-medium" title="Bills">
+                  <div className="text-[8px] sm:text-[10px] text-red-600 dark:text-red-400 font-medium truncate" title={`Bills: ${formatAmount(billTotal)}`}>
                     −{formatAmount(billTotal)}
                   </div>
                 )}
                 {incomeTotal > 0 && (
-                  <div className="text-[10px] text-green-600 dark:text-green-400 font-medium" title="Income">
+                  <div className="text-[8px] sm:text-[10px] text-green-600 dark:text-green-400 font-medium truncate" title={`Income: ${formatAmount(incomeTotal)}`}>
                     +{formatAmount(incomeTotal)}
                   </div>
                 )}
@@ -147,12 +147,12 @@ export function BillCalendar() {
         })}
       </div>
 
-      <div className="flex gap-4 mt-3 pt-3 border-t dark:border-gray-700 text-xs">
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-red-500" /> Bills
+      <div className="flex gap-3 sm:gap-4 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t dark:border-gray-700 text-[10px] sm:text-xs">
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500" /> Bills
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-green-500" /> Income
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500" /> Income
         </span>
       </div>
     </div>

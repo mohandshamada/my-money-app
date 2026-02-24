@@ -1,13 +1,15 @@
 import { CurrencySelector } from '../components/CurrencySelector'
+import { BankConnect } from '../components/BankConnect'
 import { useState, useEffect } from 'react'
 import { Shield, ShieldCheck, Key, AlertCircle, Check, X, Fingerprint, Smartphone, Trash2 } from 'lucide-react'
 import {
   startRegistration,
   browserSupportsWebAuthn,
-} from '@simplewebauthn/browser';
+} from '@simplewebauthn/browser'
+import { useCurrency } from '../contexts/CurrencyContext'
 
 export function SettingsPage() {
-  const [currency, setCurrency] = useState('USD')
+  const { setCurrency } = useCurrency()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   
@@ -256,7 +258,7 @@ export function SettingsPage() {
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
           Select your preferred currency for displaying amounts
         </p>
-        <CurrencySelector value={currency} onChange={setCurrency} />
+        <CurrencySelector />
       </div>
 
       {/* Security Section */}
@@ -491,6 +493,11 @@ export function SettingsPage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Bank Accounts Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 md:p-6 shadow-sm">
+        <BankConnect />
       </div>
 
       {/* Account Section */}

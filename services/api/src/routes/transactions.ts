@@ -38,13 +38,13 @@ router.get('/', async (req: any, res: any, next: any) => {
     }
     
     const [transactions, total] = await Promise.all([
-      prisma.transaction.findMany({
+      prisma.transactions.findMany({
         where,
         orderBy: { date: 'desc' },
         take: parseInt(limit as string),
         skip: parseInt(offset as string)
       }),
-      prisma.transaction.count({ where })
+      prisma.transactions.count({ where })
     ]);
     
     res.json({
@@ -64,7 +64,7 @@ router.post('/', async (req: any, res: any, next: any) => {
     const data = transactionSchema.parse(req.body);
     const userId = req.user!.id;
     
-    const transaction = await prisma.transaction.create({
+    const transaction = await prisma.transactions.create({
       data: { ...req.body as any,
         ...data,
         date: new Date(data.date),
@@ -85,7 +85,7 @@ router.put('/:id', async (req: any, res: any, next: any) => {
     const data = transactionSchema.partial().parse(req.body);
     const userId = req.user!.id;
     
-    const transaction = await prisma.transaction.update({
+    const transaction = await prisma.transactions.update({
       where: { id, userId },
       data: { ...req.body as any,
         ...data,
@@ -105,7 +105,7 @@ router.delete('/:id', async (req: any, res: any, next: any) => {
     const { id } = req.params;
     const userId = req.user!.id;
     
-    await prisma.transaction.delete({
+    await prisma.transactions.delete({
       where: { id, userId }
     });
     
@@ -121,6 +121,47 @@ router.post('/import', async (req: any, res: any, next: any) => {
     // Placeholder for CSV import logic
     // Would parse CSV, map columns, create transactions
     res.json({ imported: 0, duplicatesSkipped: 0, errors: 0 });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Export transactions as CSV
+router.get('/export', async (req: any, res: any, next: any) => {
+  try {
+    const userId = req.user!.id;
+    const { startDate, endDate } = req.query;
+    
+    const where: any = { userId };
+    
+    if (startDate || endDate) {
+      where.date = {};
+      if (startDate) where.date.gte = new Date(startDate as string);
+      if (endDate) where.date.lte = new Date(endDate as string);
+    }
+    
+    const transactions = await prisma.transactions.findMany({
+      where,
+      orderBy: { date: 'desc' }
+    });
+    
+    // Generate CSV
+    const headers = ['Date', 'Amount', 'Type', 'Category', 'Merchant', 'Description', 'Pending'];
+    const rows = transactions.map(t => [
+      t.date.toISOString().split('T')[0],
+      t.amount.toFixed(2),
+      t.isExpense ? 'Expense' : 'Income',
+      t.category,
+      t.merchant || '',
+      t.description || '',
+      t.pending ? 'Yes' : 'No'
+    ]);
+    
+    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="transactions-${new Date().toISOString().split('T')[0]}.csv"`);
+    res.send(csv);
   } catch (error) {
     next(error);
   }
