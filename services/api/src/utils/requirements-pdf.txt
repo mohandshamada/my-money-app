@@ -1,0 +1,22 @@
+# PDF Parsing Dependencies for Bank Statement Extraction
+
+# Primary Parser (Required)
+pymupdf>=1.24.0          # PyMuPDF - Fast, accurate text extraction
+pdfplumber>=0.11.0       # Table extraction and text parsing
+
+# Alternative Parsers (Optional but recommended)
+pdfminer.six>=20231228   # Low-level PDF parsing with layout analysis
+pymupdf4llm>=0.0.1       # LLM-optimized PDF extraction (markdown output)
+
+# Table-specific parsers (Optional)
+# Uncomment if you need advanced table extraction
+camelot-py>=0.11.0       # Grid-based table extraction (requires OpenCV)
+tabula-py>=2.9.0         # Java-based table extraction
+
+# OCR for scanned PDFs (Optional)
+# pytesseract>=0.3.10      # OCR for scanned documents
+# pdf2image>=1.17.0        # Convert PDF pages to images for OCR
+
+# Additional utilities
+pandas>=2.0.0            # Data manipulation for extracted tables
+numpy>=1.24.0            # Numerical operations
